@@ -15,14 +15,22 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!-- A TV has no touchscreen and (usually) no camera/telephony. Declaring
-         these as not-required is what stops both stores filtering the app out
-         of TV device lists. -->
+         these as not-required means nothing here can cause a device to reject
+         the app at install time. -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.faketouch" android:required="false" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <!-- Declares 10-foot/D-pad UI support. Not required=true: that attribute
+         is purely a Play Store submission filter that restricts *store*
+         distribution to devices advertising this feature — it is not enforced
+         by the OS at install time, so it has no effect on sideloading, and
+         this app is sideload-only. There used to be a separate manifest per
+         store flavour over this one flag; both said the same thing in
+         practice, so the flavour split was retired. -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <application
         android:name=".IptvApp"

@@ -280,7 +280,7 @@ fun SettingsScreen(
         item { SectionHeader(stringResource(R.string.settings_section_about)) }
         item {
             Text(
-                stringResource(R.string.settings_version, BuildConfig.VERSION_NAME, BuildConfig.STORE),
+                stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

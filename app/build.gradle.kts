@@ -69,22 +69,6 @@ android {
         buildConfigField("String", "POSTHOG_HOST", "\"$postHogHost\"")
     }
 
-    // One codebase, two stores. The flavors exist so each store gets a build
-    // with the right feature/permission declarations and so store-specific
-    // behavior (e.g. where "rate the app" points) has a compile-time switch —
-    // NOT so that features diverge. Keep functional code flavor-agnostic.
-    flavorDimensions += "store"
-    productFlavors {
-        create("play") {
-            dimension = "store"
-            buildConfigField("String", "STORE", "\"google_play\"")
-        }
-        create("amazon") {
-            dimension = "store"
-            buildConfigField("String", "STORE", "\"amazon_appstore\"")
-        }
-    }
-
     signingConfigs {
         if (hasReleaseKey) {
             create("release") {
@@ -131,7 +115,7 @@ android {
         create("benchmark") {
             initWith(buildTypes.getByName("release"))
             // Optionally keep symbols so a simpleperf capture is readable:
-            //   ./gradlew assemblePlayBenchmark -PbenchmarkSymbols
+            //   ./gradlew assembleBenchmark -PbenchmarkSymbols
             if (project.hasProperty("benchmarkSymbols")) {
                 isMinifyEnabled = false
                 isShrinkResources = false
@@ -179,7 +163,7 @@ kotlin {
 // skippable* re-executes every time its parent does, no matter what its
 // arguments are — on a screen that recomposes per D-pad press, that is the
 // difference between redrawing one panel and redrawing a thousand-row list.
-// Enable with: ./gradlew assemblePlayDebug -PcomposeMetrics
+// Enable with: ./gradlew assembleDebug -PcomposeMetrics
 if (project.hasProperty("composeMetrics")) {
     composeCompiler {
         reportsDestination = layout.buildDirectory.dir("compose_reports")

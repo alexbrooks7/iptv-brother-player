@@ -6,8 +6,11 @@ login — and the app plays Live TV, movies and series from it, with an XMLTV
 programme guide.
 
 The app ships with **no channels, no content and no provider**. It is a player,
-in the same category as VLC or Kodi. See [Store policy](#store-policy) before
-submitting anywhere.
+in the same category as VLC or Kodi.
+
+**Distribution is sideload-only** — a single universal APK on GitHub Releases,
+not submitted to Google Play or the Amazon Appstore. It runs identically on
+Android TV, Google TV and Fire TV; nothing in the build varies by platform.
 
 ---
 
@@ -33,14 +36,15 @@ just compiled — see [Testing](#testing).
 Requires JDK 17 (Android Studio's bundled JBR is fine) and the Android SDK.
 
 ```bash
-./gradlew :app:assemblePlayDebug
+./gradlew :app:assembleDebug
 ```
 
-Variants are `play` and `amazon` (store flavours) × `debug`/`release`/`benchmark`:
-
-```bash
-./gradlew :app:assemblePlayRelease :app:assembleAmazonRelease
-```
+Build types are `debug` / `release` / `benchmark` — no product flavours. There
+used to be a `play`/`amazon` split; it was retired because the only two things
+it varied (a `STORE` string shown in Settings, and a Play-only device-filter
+manifest flag with no effect outside Play's own submission review) both existed
+solely for store submission, and this app does not go through a store. See
+[Architecture](#architecture) for what that flag actually did.
 
 **Never judge performance from a debug build.** `debuggable=true` stops ART
 using its optimising compiler, and without the R8 pass every Compose call stays
@@ -52,34 +56,36 @@ debug `applicationId` so it installs over an existing app and profiles against
 a real imported playlist instead of an empty database.
 
 ```bash
-./gradlew :app:assemblePlayBenchmark
-adb install -r app/build/outputs/apk/play/benchmark/app-play-benchmark.apk
+./gradlew :app:assembleBenchmark
+adb install -r app/build/outputs/apk/benchmark/app-benchmark.apk
 ```
 
 Two opt-in switches help when profiling:
 
 ```bash
-./gradlew :app:assemblePlayBenchmark -PbenchmarkSymbols   # skip R8, keep symbols
-./gradlew :app:assemblePlayDebug -PcomposeMetrics         # skippability report
+./gradlew :app:assembleBenchmark -PbenchmarkSymbols   # skip R8, keep symbols
+./gradlew :app:assembleDebug -PcomposeMetrics         # skippability report
 ```
 
 Install a debug build:
 
 ```bash
-adb install -r app/build/outputs/apk/play/debug/app-play-debug.apk
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Unit tests (parsers, URL normalisation, classification — no device needed):
 
 ```bash
-./gradlew :app:testPlayDebugUnitTest
+./gradlew :app:testDebugUnitTest
 ```
 
-### Signing & store builds
+### Signing & sideload builds
 
 `assembleRelease` falls back to the debug keystore so a fresh clone builds
-without setup — that APK is **sideloadable but not uploadable**. For a real
-store build, create `keystore.properties` in the project root (gitignored):
+without setup — that APK is **sideloadable, but its signature is not stable
+across machines or CI runs**, so it cannot receive in-place updates once
+someone has it installed. For a real, distributable build, create
+`keystore.properties` in the project root (gitignored):
 
 ```properties
 storeFile=release.keystore
@@ -88,25 +94,21 @@ keyAlias=…
 keyPassword=…
 ```
 
-Both stores want an AAB for Play and an APK for Amazon:
-
 ```bash
-./gradlew :app:bundlePlayRelease      # app/build/outputs/bundle/playRelease/
-./gradlew :app:assembleAmazonRelease  # app/build/outputs/apk/amazon/release/
+./gradlew :app:assembleRelease   # app/build/outputs/apk/release/
 ```
 
 ### Publishing a release
 
-Sideload downloads live on GitHub Releases. These URLs always serve the newest
-release and never change:
+Sideload downloads live on GitHub Releases. This URL always serves the newest
+release and never changes:
 
-- **Android TV / Google TV** —
-  `https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player-play.apk`
-- **Amazon Fire TV** —
-  `https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player-amazon.apk`
+**`https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player.apk`**
+
+One universal APK — the same file works on Android TV, Google TV and Fire TV.
 
 Publishing is tag-triggered — `.github/workflows/release.yml` tests, builds and
-attaches both APKs:
+attaches the APK:
 
 ```bash
 git tag v1.0.1 && git push origin v1.0.1
@@ -145,7 +147,7 @@ cannot be regenerated or recovered.
 
 | Layer | Choice | Why |
 |---|---|---|
-| Language / UI | Kotlin, Jetpack Compose + `androidx.tv:tv-material` | One UI that satisfies both platforms. **Not Leanback** — Fire OS does not use it, and the brief requires a single codebase for both stores. Leanback's *conventions* (focus rail, content to the right) are implemented directly in Compose. |
+| Language / UI | Kotlin, Jetpack Compose + `androidx.tv:tv-material` | One UI that satisfies both Android TV and Fire TV. **Not Leanback** — Fire OS does not use it. Leanback's *conventions* (focus rail, content to the right) are implemented directly in Compose. |
 | Playback | Media3 / ExoPlayer (HLS, DASH, RTSP, progressive, MPEG-TS) | Industry standard; the extension modules give protocol coverage without native builds. |
 | Persistence | Room + DataStore | Room for the catalogue and guide, DataStore for settings. |
 | Networking | OkHttp, shared with ExoPlayer's data source | One connection pool, so a channel change reuses a warm TLS connection. |
@@ -226,20 +228,20 @@ is about it.
 ## Fire TV / no-GMS
 
 There is no dependency on Google Play Services anywhere in the project, so the
-same code ships to both stores. Specifically: WorkManager (not Firebase
+one build runs on Fire TV as-is. Specifically: WorkManager (not Firebase
 JobDispatcher or GCM), no Firebase Analytics or Crashlytics, no Google Sign-In,
 no Cast, no Maps.
 
-The `play` and `amazon` flavours exist only to carry store-specific manifest
-declarations and a `BuildConfig.STORE` constant. **Keep functional code
-flavour-agnostic** — the flavours are not a place to let behaviour diverge.
-
-- `play` declares `android.software.leanback` as **required**, restricting Play
-  distribution to TV devices. The UI is 10-foot only and would rate badly if
-  phone users installed it.
-- `amazon` declares it **not required**. Amazon targets devices by model in the
-  developer console, and a hard manifest requirement has historically excluded
-  Fire TV devices from the supported list at submission.
+The manifest declares `android.software.leanback` as **not required**
+(`app/src/main/AndroidManifest.xml`). That attribute only ever mattered for
+Play Store submission filtering — required=true restricts *Play distribution*
+to devices advertising the feature, but it is not enforced by the OS at
+install time, so it has no effect on a sideloaded APK either way. There used
+to be a `play`/`amazon` build flavour split over exactly this one flag, kept
+apart because Play wanted it `true` and Amazon's submission process had
+historically excluded Fire TV devices when it was set. Neither store is in the
+picture now, so the flag is fixed at the safer, more compatible value and the
+flavour split was retired — see [Build](#build).
 
 ---
 
@@ -298,6 +300,10 @@ Adding Sentry later is a drop-in: implement the same three calls in
 ---
 
 ## Store policy
+
+Not currently applicable — distribution is sideload-only (see
+[Build](#build)) — kept here because the underlying design decisions are worth
+keeping regardless of distribution channel, and because that could change.
 
 Both Google Play and the Amazon Appstore have policies about apps that
 facilitate access to unlicensed content. A generic player that accepts
@@ -589,7 +595,7 @@ real playlists, plus `XmltvTimeTest`, `XtreamBaseUrlTest`,
 `CategoryClassifierTest`, `ChannelNameMatchingTest`, `StableHashTest`.
 
 ```bash
-./gradlew :app:testPlayDebugUnitTest      # 43 tests
+./gradlew :app:testDebugUnitTest      # 43 tests
 ```
 
 The app was also driven end to end on an Android TV emulator (API 34, 1080p)

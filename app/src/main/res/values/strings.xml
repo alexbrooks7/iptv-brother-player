@@ -223,7 +223,7 @@
     <string name="settings_clear_history">Clear watch history</string>
     <string name="settings_logs">Diagnostics log</string>
     <string name="settings_logs_summary">The last %1$d network and playback events. Useful when a provider says a stream works.</string>
-    <string name="settings_version">Version %1$s (%2$s)</string>
+    <string name="settings_version">Version %1$s</string>
     <string name="settings_legal">This app plays only the playlists you provide. It ships with no channels, no content and no provider.</string>
 
     <!-- Generic -->

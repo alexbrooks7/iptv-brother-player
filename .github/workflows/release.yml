@@ -66,24 +66,22 @@ jobs:
           EOF
 
       - name: Test before shipping
-        run: ./gradlew :app:testPlayDebugUnitTest :app:testAmazonDebugUnitTest
+        run: ./gradlew :app:testDebugUnitTest
 
-      - name: Build signed release APKs
-        run: ./gradlew :app:assemblePlayRelease :app:assembleAmazonRelease
+      - name: Build signed release APK
+        run: ./gradlew :app:assembleRelease
 
-      # Renamed to fixed, version-free filenames on purpose. The permanent
+      # Renamed to a fixed, version-free filename on purpose. The permanent
       # download URL is
-      #   /releases/latest/download/iptv-brother-player-play.apk
+      #   /releases/latest/download/iptv-brother-player.apk
       # and that only keeps working if the asset name never changes between
       # releases. Putting the version in the filename would break the link on
       # every release, which defeats the point of having one.
-      - name: Stage APKs under stable names
+      - name: Stage APK under a stable name
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/play/release/app-play-release.apk \
-             dist/iptv-brother-player-play.apk
-          cp app/build/outputs/apk/amazon/release/app-amazon-release.apk \
-             dist/iptv-brother-player-amazon.apk
+          cp app/build/outputs/apk/release/app-release.apk \
+             dist/iptv-brother-player.apk
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -91,12 +89,11 @@ jobs:
           files: dist/*.apk
           generate_release_notes: true
           body: |
-            **Android TV / Google TV** → `iptv-brother-player-play.apk`
-            **Amazon Fire TV** → `iptv-brother-player-amazon.apk`
+            One universal APK — runs identically on Android TV, Google TV and
+            Amazon Fire TV. Sideload only; not distributed through any store.
 
-            Always-latest download links:
-            - https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player-play.apk
-            - https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player-amazon.apk
+            Always-latest download link:
+            https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player.apk
 
             This app ships with no channels, no content and no provider. You
             supply your own playlist.

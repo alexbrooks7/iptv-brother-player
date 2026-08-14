@@ -34,28 +34,26 @@ jobs:
       # the app still compiles with internet sharing and analytics fully
       # disabled. That fail-closed path is what a fresh clone gets, and it is
       # otherwise never exercised on a developer machine that has the keys.
-      - name: Unit tests (both store flavours)
-        run: ./gradlew :app:testPlayDebugUnitTest :app:testAmazonDebugUnitTest
+      - name: Unit tests
+        run: ./gradlew :app:testDebugUnitTest
 
-      - name: Build debug APKs (both store flavours)
-        run: ./gradlew :app:assemblePlayDebug :app:assembleAmazonDebug
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug
 
       # Release is built too, and not for the artifact — it is the only
       # variant that runs R8. The Pawns SDK is reached by name from the
       # manifest and its DTOs cross a serialization boundary, so a wrong keep
-      # rule in proguard-rules.pro breaks sharing *only* in release, where the
+      # rule in proguard-rules.pro breaks sharing only in release, where the
       # app otherwise looks perfectly healthy. Catching that here is cheaper
-      # than catching it in a store review.
+      # than catching it after handing someone a broken sideload.
       - name: Build release (exercises R8 / ProGuard rules)
-        run: ./gradlew :app:assemblePlayRelease
+        run: ./gradlew :app:assembleRelease
 
-      - name: Upload debug APKs
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: iptv-brother-player-debug-apks
-          path: |
-            app/build/outputs/apk/play/debug/app-play-debug.apk
-            app/build/outputs/apk/amazon/debug/app-amazon-debug.apk
+          name: iptv-brother-player-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
 
       # Only on failure: a red run is useless without the report that says
       # which assertion broke, and on a TV app most contributors will not have
