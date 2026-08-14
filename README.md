@@ -95,6 +95,50 @@ Both stores want an AAB for Play and an APK for Amazon:
 ./gradlew :app:assembleAmazonRelease  # app/build/outputs/apk/amazon/release/
 ```
 
+### Publishing a release
+
+Sideload downloads live on GitHub Releases. These URLs always serve the newest
+release and never change:
+
+- **Android TV / Google TV** —
+  `https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player-play.apk`
+- **Amazon Fire TV** —
+  `https://github.com/alexbrooks7/iptv-brother-player/releases/latest/download/iptv-brother-player-amazon.apk`
+
+Publishing is tag-triggered — `.github/workflows/release.yml` tests, builds and
+attaches both APKs:
+
+```bash
+git tag v1.0.1 && git push origin v1.0.1
+```
+
+**One-time setup: the signing key.** Android refuses to upgrade an installed
+app whose signature changed, so every release must be signed with the *same*
+key or users have to uninstall — losing their playlists, favourites and watch
+history — just to take an update. Without a real key the build falls back to
+the debug keystore, which a CI runner regenerates on every run, giving every
+release a different signature. The release job therefore refuses to run until
+four repository secrets exist (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `KEYSTORE_BASE64` | your `release.keystore`, base64-encoded |
+| `KEYSTORE_PASSWORD` | keystore password |
+| `KEY_ALIAS` | key alias |
+| `KEY_PASSWORD` | key password |
+
+To create a key and encode it:
+
+```bash
+keytool -genkey -v -keystore release.keystore -alias iptv \
+        -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 release.keystore    # paste into KEYSTORE_BASE64
+```
+
+Back up `release.keystore` somewhere safe and permanent. Losing it means you
+can never ship an upgrade to anyone who installed a previous build, and it
+cannot be regenerated or recovered.
+
 ---
 
 ## Architecture
