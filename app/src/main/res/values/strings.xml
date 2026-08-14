@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Every user-visible string lives here, per the brief's "externalised from day
+  one" requirement, even though only English ships in v1. Translators get this
+  one file; nothing in Kotlin holds a hard-coded sentence.
+
+  Naming: <area>_<thing>. Keep alphabetical-ish grouping by area so a
+  translator can see related copy together.
+-->
+<resources>
+    <string name="app_name">IPTV Brother Player</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_live">Live TV</string>
+    <string name="nav_guide">Guide</string>
+    <string name="nav_movies">Movies</string>
+    <string name="nav_series">Series</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_sources">Playlists</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="home_continue_watching">Continue watching</string>
+    <string name="home_favorites">Favourites</string>
+    <string name="home_recent_channels">Recently watched</string>
+    <string name="home_empty_title">No playlist yet</string>
+    <string name="home_empty_body">Add an M3U playlist or an Xtream Codes login to start watching.</string>
+    <string name="home_empty_action">Add a playlist</string>
+    <string name="home_resume_last">Resume %1$s</string>
+
+    <!-- Sources -->
+    <string name="sources_title">Playlists</string>
+    <string name="sources_add">Add playlist</string>
+    <string name="sources_empty">No playlists configured.</string>
+    <string name="sources_refresh">Refresh now</string>
+    <string name="sources_refresh_all">Refresh all</string>
+    <string name="sources_rename">Rename</string>
+    <string name="sources_delete">Delete</string>
+    <string name="sources_move_up">Move up</string>
+    <string name="sources_move_down">Move down</string>
+    <string name="sources_make_active">Switch to this playlist</string>
+    <string name="sources_active">Active</string>
+    <string name="sources_export">Export configuration</string>
+    <string name="sources_import">Import configuration</string>
+    <string name="sources_last_sync">Updated %1$s</string>
+    <string name="sources_needs_sign_in">This playlist needs a username and password before it can load.</string>
+    <string name="sources_sign_in">Sign in</string>
+    <string name="sources_sign_in_summary">Enter the Xtream login for this playlist. It was not included when the playlist was imported.</string>
+    <string name="sources_never_synced">Never updated</string>
+    <string name="sources_counts">%1$d channels · %2$d movies · %3$d series</string>
+    <string name="sources_delete_confirm">Delete “%1$s”? Its channels, favourites and watch history for this playlist are removed.</string>
+
+    <!-- Add source -->
+    <string name="add_source_title">Add a playlist</string>
+    <string name="add_source_type_m3u_url">M3U / M3U8 URL</string>
+    <string name="add_source_type_m3u_file">M3U file on this device or USB</string>
+    <string name="add_source_type_xtream">Xtream Codes login</string>
+    <string name="add_source_name">Name</string>
+    <string name="add_source_name_hint">e.g. Living room</string>
+    <string name="add_source_url">Playlist URL</string>
+    <string name="add_source_url_hint">http://…/playlist.m3u</string>
+    <string name="add_source_epg_url">EPG URL (XMLTV, optional)</string>
+    <string name="add_source_epg_url_hint">http://…/xmltv.php</string>
+    <string name="add_source_server">Server URL</string>
+    <string name="add_source_server_hint">http://example.com:8080</string>
+    <string name="add_source_username">Username</string>
+    <string name="add_source_password">Password</string>
+    <string name="add_source_user_agent">Custom User-Agent (optional)</string>
+    <string name="add_source_pick_file">Choose file…</string>
+    <string name="add_source_file_chosen">Selected: %1$s</string>
+    <string name="add_source_test">Test connection</string>
+    <string name="add_source_save">Save and load</string>
+    <string name="add_source_testing">Testing…</string>
+    <string name="add_source_test_ok">Connected. %1$s</string>
+    <string name="add_source_error_name">Give the playlist a name.</string>
+    <string name="add_source_error_url">Enter a valid http:// or https:// URL.</string>
+    <string name="add_source_error_credentials">Enter the server, username and password.</string>
+    <string name="add_source_error_file">Choose an M3U file first.</string>
+    <string name="add_source_no_file_picker">This device has no file manager, so files cannot be browsed. Use a playlist URL instead, or install a file manager from your app store.</string>
+
+    <!-- Loading / sync -->
+    <string name="sync_downloading">Downloading playlist…</string>
+    <string name="sync_parsing">Reading %1$d channels…</string>
+    <string name="sync_saving">Saving…</string>
+    <string name="sync_epg">Loading programme guide…</string>
+    <string name="sync_done">Ready</string>
+    <string name="sync_failed">Could not load the playlist: %1$s</string>
+    <string name="sync_skipped_entries">%1$d entries were skipped because they were incomplete.</string>
+
+    <!-- Live TV -->
+    <string name="live_all_channels">All channels</string>
+    <string name="live_favorites">Favourites</string>
+    <string name="live_recent">Recent</string>
+    <string name="live_uncategorised">Uncategorised</string>
+    <string name="live_no_channels">This playlist has no live channels.</string>
+    <string name="live_channel_count">%1$d channels</string>
+    <string name="live_add_favorite">Add to favourites</string>
+    <string name="live_remove_favorite">Remove from favourites</string>
+    <string name="live_now">Now</string>
+    <string name="live_next">Next</string>
+    <string name="live_no_programme">No guide data</string>
+
+    <!-- Guide (EPG) -->
+    <string name="guide_title">Programme guide</string>
+    <string name="guide_now">Now</string>
+    <string name="guide_jump_to">Jump to…</string>
+    <string name="guide_today">Today</string>
+    <string name="guide_tomorrow">Tomorrow</string>
+    <string name="guide_yesterday">Yesterday</string>
+    <string name="guide_no_data">No guide data for this playlist. Add an EPG URL in the playlist settings.</string>
+    <string name="guide_watch">Watch</string>
+    <string name="guide_watch_from_start">Watch from start (catch-up)</string>
+    <string name="guide_catchup_unavailable">Catch-up is not available on this channel.</string>
+    <string name="guide_programme_time">%1$s – %2$s</string>
+
+    <!-- VOD / Series -->
+    <string name="vod_title">Movies</string>
+    <string name="vod_empty">This playlist has no movies.</string>
+    <string name="series_title">Series</string>
+    <string name="series_empty">This playlist has no series.</string>
+    <string name="series_season">Season %1$d</string>
+    <string name="series_episode">%1$d. %2$s</string>
+    <string name="series_episodes_count">%1$d episodes</string>
+    <string name="detail_play">Play</string>
+    <string name="detail_resume">Resume from %1$s</string>
+    <string name="detail_start_over">Start from the beginning</string>
+    <string name="detail_year">%1$s</string>
+    <string name="detail_rating">Rating %1$s</string>
+    <string name="detail_no_description">No description available.</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search channels, movies and series</string>
+    <string name="search_no_results">Nothing matched “%1$s”.</string>
+    <string name="search_section_channels">Channels</string>
+    <string name="search_section_movies">Movies</string>
+    <string name="search_section_series">Series</string>
+
+    <!-- Player -->
+    <string name="player_connecting">Connecting…</string>
+    <string name="player_connecting_retry">Still trying to connect (attempt %1$d)…</string>
+    <string name="player_buffering">Buffering…</string>
+    <string name="player_reconnecting">Stream dropped — reconnecting (attempt %1$d)…</string>
+    <string name="player_error_title">Stream unavailable</string>
+    <string name="player_error_retry">Try again</string>
+    <string name="player_error_next">Next channel</string>
+    <string name="player_error_offline">No internet connection.</string>
+    <string name="player_error_not_found">The provider returned “not found” for this stream (HTTP 404).</string>
+    <string name="player_error_forbidden">The provider refused the connection (HTTP %1$d) — the subscription may have expired or the maximum number of connections is in use.</string>
+    <string name="player_error_timeout">The server did not respond in time.</string>
+    <string name="player_error_codec">This device cannot decode the stream (%1$s).</string>
+    <string name="player_error_parse">The stream is not in a format the player understands.</string>
+    <string name="player_error_generic">Playback failed: %1$s</string>
+    <string name="player_tracks_audio">Audio</string>
+    <string name="player_tracks_subtitles">Subtitles</string>
+    <string name="player_tracks_off">Off</string>
+    <string name="player_tracks_none">None available</string>
+    <string name="player_aspect">Aspect ratio</string>
+    <string name="player_aspect_fit">Fit</string>
+    <string name="player_aspect_fill">Fill</string>
+    <string name="player_aspect_zoom">Zoom</string>
+    <string name="player_aspect_stretch">Stretch</string>
+    <string name="player_aspect_original">Original</string>
+    <string name="player_channels">Channels</string>
+    <string name="player_info">Info</string>
+    <string name="player_live_edge">LIVE</string>
+    <string name="player_timeshift">Catch-up</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_playback">Playback</string>
+    <string name="settings_section_guide">Guide</string>
+    <string name="settings_section_interface">Interface</string>
+    <string name="settings_section_parental">Parental controls</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_section_about">About</string>
+
+    <string name="settings_buffer">Buffer size</string>
+    <string name="settings_buffer_low">Low latency (channels change fast, more stutter on weak connections)</string>
+    <string name="settings_buffer_balanced">Balanced</string>
+    <string name="settings_buffer_stable">Stable (slower to start, survives bad connections)</string>
+    <string name="settings_hw_decoding">Hardware decoding</string>
+    <string name="settings_hw_decoding_summary">Required on low-power boxes. Turn off only to debug a stream that will not play.</string>
+    <string name="settings_compat_surface">Compatibility video surface</string>
+    <string name="settings_compat_surface_summary">Slower and uses more power. Turn on only if you hear sound but the picture stays black.</string>
+    <string name="settings_autoreconnect">Auto-reconnect attempts</string>
+    <string name="settings_resume_last_channel">Open the last channel on start-up</string>
+    <string name="settings_aspect_default">Default aspect ratio</string>
+
+    <string name="settings_time_format">Time format</string>
+    <string name="settings_time_12h">12-hour</string>
+    <string name="settings_time_24h">24-hour</string>
+    <string name="settings_epg_offset">Guide time offset</string>
+    <string name="settings_epg_offset_summary">Shift guide times if your provider publishes them in a different timezone. Currently %1$s.</string>
+    <string name="settings_epg_refresh">Refresh the guide automatically</string>
+    <string name="settings_refresh_interval">Refresh playlists every</string>
+    <string name="settings_hours">%1$d hours</string>
+
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_ui_scale">Interface size</string>
+    <string name="settings_ui_scale_summary">Make text and tiles larger or smaller for your screen and seating distance.</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">Follow the system</string>
+
+    <string name="settings_parental_enable">Lock adult categories with a PIN</string>
+    <string name="settings_parental_set_pin">Set PIN</string>
+    <string name="settings_parental_change_pin">Change PIN</string>
+    <string name="settings_parental_remove_pin">Remove PIN</string>
+    <string name="settings_parental_remove_pin_summary">Turns parental locking off. Locked categories become visible to everyone.</string>
+    <string name="settings_parental_locked_categories">Locked categories</string>
+    <string name="settings_parental_hide">Hide locked categories completely</string>
+    <string name="pin_enter">Enter PIN</string>
+    <string name="pin_set">Choose a 4-digit PIN</string>
+    <string name="pin_confirm">Enter it again</string>
+    <string name="pin_wrong">Wrong PIN.</string>
+    <string name="pin_mismatch">The two PINs did not match.</string>
+    <string name="pin_locked_out">Too many attempts. Try again in %1$d seconds.</string>
+
+    <string name="settings_clear_cache">Clear guide cache</string>
+    <string name="settings_clear_history">Clear watch history</string>
+    <string name="settings_logs">Diagnostics log</string>
+    <string name="settings_logs_summary">The last %1$d network and playback events. Useful when a provider says a stream works.</string>
+    <string name="settings_version">Version %1$s (%2$s)</string>
+    <string name="settings_legal">This app plays only the playlists you provide. It ships with no channels, no content and no provider.</string>
+
+    <!-- Generic -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_back">Back</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_close">Close</string>
+    <string name="state_loading">Loading…</string>
+    <string name="state_offline_title">No internet connection</string>
+    <string name="state_offline_body">Check the network on this device. Playlists and the guide will refresh once you are back online.</string>
+    <string name="state_empty">Nothing here yet.</string>
+    <string name="state_on">On</string>
+    <string name="state_off">Off</string>
+    <string name="time_now">Now</string>
+    <string name="time_minutes_left">%1$d min left</string>
+
+    <!-- Accessibility: spoken labels for controls whose meaning is carried by
+         an icon alone. TalkBack on TV reads these. -->
+    <string name="cd_channel_logo">Logo for %1$s</string>
+    <string name="cd_favorite_on">%1$s is a favourite</string>
+    <string name="cd_favorite_off">%1$s is not a favourite</string>
+    <string name="cd_poster">Poster for %1$s</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_pause">Pause</string>
+
+    <!-- Internet sharing (Pawns.app). The consent copy states what Pawns.app
+         actually receives and what it costs, because Pawns' own terms put
+         responsibility for how this is disclosed on the app owner — an
+         inaccurate or vague disclosure is the app owner's liability, and both
+         stores treat undisclosed traffic routing as a policy violation. -->
+    <string name="pawns_service_name">Sharing your internet</string>
+    <string name="pawns_service_body">Tap to review or turn off in IPTV Brother Player settings</string>
+
+    <string name="consent_title">Help Keep IPTV Brother Player Free</string>
+    <string name="consent_body">IPTV Brother Player can use a portion of your device\'s network bandwidth to route internet traffic for Pawns.app and its clients. This helps fund development and keep the app free. It runs in the background while you watch.</string>
+    <string name="consent_detail">Pawns.app receives your IP address and approximate location. This uses data and can affect your internet speed, so skip it on a metered or restricted connection. You can turn it off at any time in Settings.</string>
+    <string name="consent_terms">Terms of Use: pawns.app/terms-of-use</string>
+    <string name="consent_privacy">Privacy Policy: pawns.app/privacy-policy</string>
+    <string name="consent_accept">Okay</string>
+    <string name="consent_decline">No thanks</string>
+
+    <string name="settings_section_sharing">Internet sharing</string>
+    <string name="settings_sharing">Share internet bandwidth</string>
+    <string name="settings_sharing_review">Review what this shares</string>
+    <string name="settings_sharing_off">Off — nothing is being shared</string>
+    <string name="settings_sharing_on">Active — this device is sharing its connection</string>
+    <string name="settings_sharing_low_battery">Paused — battery is low</string>
+    <string name="settings_sharing_error">Not sharing — %1$s</string>
+</resources>

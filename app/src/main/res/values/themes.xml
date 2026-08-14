@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Deliberately parented on the platform theme rather than an AppCompat or
+      Material Components one: the UI is 100% Compose, so pulling in an
+      appcompat theme would only add a dependency and an inflation cost to
+      every cold start.
+
+      windowBackground is the app's own dark background so the window that the
+      system shows *before* the first Compose frame matches the app instead of
+      flashing white — the cheapest win against the brief's 3-second cold-start
+      budget.
+    -->
+    <style name="Theme.IptvPlayer" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:colorBackground">@color/window_background</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

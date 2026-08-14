@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Compatibility video surface: a TextureView.
+
+  Selected by Settings → "Compatibility video surface". Identical to
+  player_view.xml apart from `surface_type`, which is an XML-only attribute and
+  therefore cannot be switched on an already-constructed PlayerView — swapping
+  between the two means inflating a different layout, which is why this is a
+  second file rather than a runtime flag.
+
+  A TextureView draws as a normal element of the view hierarchy instead of
+  claiming a hardware overlay plane. That costs a full-screen GPU composite per
+  frame and rules out DRM-secure output — acceptable here, as this app plays no
+  protected content — but it sidesteps display stacks that fail to composite an
+  overlay correctly beneath a Compose UI. The symptom that points here is a
+  black picture with working audio *after* confirming in the diagnostics log
+  that "First video frame rendered" is present: frames are reaching a surface,
+  the surface is just not reaching the screen.
+-->
+<androidx.media3.ui.PlayerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/player_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    app:surface_type="texture_view"
+    app:use_controller="false" />

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP has to be allowed, and this is a deliberate, documented
+  decision rather than an oversight.
+
+  Since API 28 Android blocks cleartext by default. That default is right for
+  most apps and wrong for this one: IPTV providers overwhelmingly serve
+  playlists, the Xtream API, XMLTV feeds and the streams themselves over plain
+  http, frequently on a bare IP with a non-standard port and no certificate at
+  all. With the platform default in place, the very first thing a user does —
+  paste the URL from their subscription email — fails with
+  "CLEARTEXT communication not permitted", which is not a message they can act
+  on. Every player in this category permits cleartext for the same reason.
+
+  What the user gives up is confidentiality of their playlist URL and,
+  for Xtream sources, the credentials embedded in stream paths, against an
+  attacker on the same network. That is a real cost. It is mitigated where it
+  can be: the app never *downgrades* an https URL, credentials are encrypted at
+  rest with a Keystore key (see CredentialCrypto), and the diagnostics log
+  redacts them. It cannot be avoided outright without breaking the app's
+  primary function.
+
+  If you are building a variant for a provider you control and that provider is
+  https-only, delete this file and the android:networkSecurityConfig attribute
+  in the manifest — nothing else depends on it.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- User-installed CAs are trusted too: TV boxes on a home network
+                 sometimes sit behind a proxy the household installed, and
+                 refusing those certificates breaks playback for no security
+                 benefit given cleartext is already permitted above. -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -1,0 +1,83 @@
+# Baseline profile — ahead-of-time compilation hints for the start-up path.
+#
+# WHAT THIS IS
+# Without a profile, ART starts a cold app in the interpreter and only JITs
+# code once it has proven itself hot. Compose start-up is thousands of small
+# methods executed a handful of times each, which is close to the worst case
+# for that heuristic: the work is spread too thin to trip the JIT thresholds
+# quickly, so it is interpreted, and the first screen is slow. Listing those
+# methods here has ART compile them at install time instead. It is the single
+# largest start-up win available to a Compose app, and it costs nothing at
+# runtime.
+#
+# WHY IT MATTERS HERE
+# Cold start on the 2 GB Android TV box this app was profiled on was 5.7 s
+# against a 3 s budget, entirely on a device whose CPU is the constraint. Boxes
+# like it are the target, not the exception.
+#
+# HOW THIS ONE WAS WRITTEN
+# By hand, from measurement rather than from a generator: the rules below cover
+# the classes on the path from process start to a drawn channel list, plus the
+# list-scrolling path that profiling showed to be the hot loop. That is honest
+# but coarse. The precise way is to generate one from a real run — add the
+# `androidx.baselineprofile` plugin and a `com.android.test` module using
+# `BaselineProfileRule`, then run it against this app on a device (API 33+
+# works without root, so the box above qualifies) and let it replace this file.
+# Doing that is the recommended next step; this file is the floor, not the
+# ceiling.
+#
+# FORMAT
+#   H = hot, S = startup, P = post-startup, L = class descriptor.
+# Wildcards are expanded by AGP's profgen at build time.
+
+# ---- Application, activity and DI ------------------------------------------
+HSPLcom/iptv/player/IptvApp;->**(**)**
+HSPLcom/iptv/player/MainActivity;->**(**)**
+HSPLcom/iptv/player/di/ServiceLocator;->**(**)**
+Lcom/iptv/player/IptvApp;
+Lcom/iptv/player/MainActivity;
+Lcom/iptv/player/di/ServiceLocator;
+
+# ---- Settings, read on the critical path before the first frame ------------
+HSPLcom/iptv/player/data/prefs/SettingsStore;->**(**)**
+HSPLcom/iptv/player/data/prefs/Settings;->**(**)**
+HSPLcom/iptv/player/data/prefs/SettingsStore$Keys;->**(**)**
+Lcom/iptv/player/data/prefs/SettingsStore;
+Lcom/iptv/player/data/prefs/Settings;
+
+# ---- Database and the read models the first screen needs -------------------
+HSPLcom/iptv/player/data/db/**->**(**)**
+HSPLcom/iptv/player/data/repo/CatalogRepository;->**(**)**
+HSPLcom/iptv/player/data/repo/SourceRepository;->**(**)**
+HSPLcom/iptv/player/data/repo/EpgRepository;->**(**)**
+Lcom/iptv/player/data/db/**;
+Lcom/iptv/player/data/repo/CatalogRepository;
+Lcom/iptv/player/data/repo/SourceRepository;
+
+# ---- View models -----------------------------------------------------------
+HSPLcom/iptv/player/ui/vm/**->**(**)**
+Lcom/iptv/player/ui/vm/**;
+
+# ---- Compose UI: theme, navigation shell, and the first screens drawn ------
+HSPLcom/iptv/player/ui/theme/**->**(**)**
+HSPLcom/iptv/player/ui/MainScreen*->**(**)**
+HSPLcom/iptv/player/ui/nav/**->**(**)**
+Lcom/iptv/player/ui/theme/**;
+Lcom/iptv/player/ui/nav/**;
+
+# ---- The list-scrolling hot loop -------------------------------------------
+# Row and artwork composables plus their lambdas: these run once per visible
+# row per recomposition, which profiling showed to be the app's tightest loop.
+HSPLcom/iptv/player/ui/components/**->**(**)**
+HSPLcom/iptv/player/ui/screens/LiveScreen*->**(**)**
+HSPLcom/iptv/player/ui/screens/HomeScreen*->**(**)**
+HSPLcom/iptv/player/ui/util/**->**(**)**
+Lcom/iptv/player/ui/components/**;
+Lcom/iptv/player/ui/util/**;
+
+# ---- Playback --------------------------------------------------------------
+# Not start-up, but the first channel launch is the other moment the user is
+# waiting on, and the engine is built from cold at that point.
+HSPLcom/iptv/player/player/**->**(**)**
+HSPLcom/iptv/player/data/remote/Http*->**(**)**
+Lcom/iptv/player/player/**;
