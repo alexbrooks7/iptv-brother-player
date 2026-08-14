@@ -1,0 +1,8 @@
+# gradlew has to actually be executable on Linux CI, and this repo is
+# developed on Windows, where NTFS has no concept of the Unix execute bit —
+# `git add` on Windows silently stores it as mode 644. `text eol=lf` also
+# pins the line endings so a Windows checkout can never reintroduce CRLF into
+# a POSIX shell script's shebang line. Without this, the fix applied once in
+# history (`git update-index --chmod=+x`) is one Windows-side re-add away
+# from silently reverting.
+gradlew text eol=lf
