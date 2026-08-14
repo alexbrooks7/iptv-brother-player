@@ -46,6 +46,33 @@ jobs:
             exit 1
           fi
 
+      # Also required, and for a reason learned the hard way: v1.0.0 shipped
+      # with the Pawns SDK bundled but its API key blank, because CI has no
+      # local.properties. PawnsManager.available was therefore false in the
+      # released binary — no consent prompt, no sharing, no revenue — and the
+      # app looked completely healthy while doing none of it. Analytics was
+      # dead in exactly the same way.
+      #
+      # `build.yml` deliberately builds *without* these, to prove a fresh
+      # clone still compiles with both features off. That check is valuable
+      # and stays. It is the release job that must be the opposite: a shipped
+      # artifact silently missing the feature it is funded by is far worse
+      # than a release that refuses to build.
+      - name: Require the runtime API keys
+        env:
+          PAWNS_API_KEY: ${{ secrets.PAWNS_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+        run: |
+          missing=""
+          [ -z "$PAWNS_API_KEY" ] && missing="$missing PAWNS_API_KEY"
+          [ -z "$POSTHOG_API_KEY" ] && missing="$missing POSTHOG_API_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing secret(s):$missing — see README 'Publishing a release'."
+            echo "Without these the release APK bundles the SDKs but disables them:"
+            echo "no consent prompt, no bandwidth sharing, no analytics."
+            exit 1
+          fi
+
       # The keystore and its passwords come from repository secrets and are
       # written to files the Gradle build already knows how to read. They are
       # never echoed, and both files are on the runner only, which is
@@ -65,11 +92,51 @@ jobs:
           keyPassword=$KEY_PASSWORD
           EOF
 
+      # app/build.gradle.kts reads both keys out of local.properties, which is
+      # gitignored and therefore absent on a runner. Writing it here is what
+      # makes the released binary actually contain them.
+      - name: Restore runtime API keys
+        env:
+          PAWNS_API_KEY: ${{ secrets.PAWNS_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+        run: |
+          {
+            echo "pawns.apiKey=$PAWNS_API_KEY"
+            echo "posthog.apiKey=$POSTHOG_API_KEY"
+            [ -n "$POSTHOG_HOST" ] && echo "posthog.host=$POSTHOG_HOST"
+          } >> local.properties
+
       - name: Test before shipping
         run: ./gradlew :app:testDebugUnitTest
 
       - name: Build signed release APK
         run: ./gradlew :app:assembleRelease
+
+      # The failure this whole job exists to prevent is a *silently* feature-
+      # less APK, so the build claiming success is not sufficient evidence.
+      # This greps the compiled dex for the key that must be embedded, which
+      # is the same check that caught v1.0.0 after the fact — run here so it
+      # can never ship unnoticed again.
+      - name: Verify keys are actually embedded in the APK
+        env:
+          PAWNS_API_KEY: ${{ secrets.PAWNS_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+        run: |
+          workdir=$(mktemp -d)
+          unzip -o -q app/build/outputs/apk/release/app-release.apk 'classes*.dex' -d "$workdir"
+          for pair in "PAWNS:$PAWNS_API_KEY" "POSTHOG:$POSTHOG_API_KEY"; do
+            label=${pair%%:*}
+            value=${pair#*:}
+            if grep -qF "$value" "$workdir"/classes*.dex; then
+              echo "OK: $label key is embedded in the release APK"
+            else
+              echo "::error::$label key is NOT in the built APK — the app would ship with that feature silently disabled."
+              rm -rf "$workdir"
+              exit 1
+            fi
+          done
+          rm -rf "$workdir"
 
       # Renamed to a fixed, version-free filename on purpose. The permanent
       # download URL is

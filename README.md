@@ -128,6 +128,27 @@ four repository secrets exist (Settings → Secrets and variables → Actions):
 | `KEYSTORE_PASSWORD` | keystore password |
 | `KEY_ALIAS` | key alias |
 | `KEY_PASSWORD` | key password |
+| `PAWNS_API_KEY` | same value as `pawns.apiKey` in `local.properties` |
+| `POSTHOG_API_KEY` | same value as `posthog.apiKey` in `local.properties` |
+| `POSTHOG_HOST` | optional; defaults to `https://us.i.posthog.com` |
+
+**Why the two API keys are required here but absent from `build.yml`.** They
+are deliberately opposite, and v1.0.0 shipped broken because that distinction
+was missed. `build.yml` builds with no keys on purpose, proving a fresh clone
+still compiles with sharing and analytics disabled. The release job needs the
+reverse: `local.properties` is gitignored and does not exist on a runner, so
+without these secrets the released APK bundles both SDKs with blank keys —
+`PawnsManager.available` is `false`, no consent prompt ever appears, no
+bandwidth is shared, no analytics are sent, and the app looks completely
+healthy while doing none of it. The release job now refuses to build without
+them, and then greps the compiled dex to confirm both keys are genuinely
+embedded before publishing, because "the build succeeded" was exactly the
+evidence that proved insufficient the first time.
+
+Note these keys are extractable from any published APK, as all client-side
+SDK keys are — the same threat model as an embedded analytics measurement ID.
+Keeping them out of tracked source is about fresh clones and contributors, not
+about the binary.
 
 To create a key and encode it:
 

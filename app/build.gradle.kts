@@ -31,7 +31,7 @@ val pawnsApiKey: String = localProps.getProperty("pawns.apiKey", "")
 val postHogApiKey: String = localProps.getProperty("posthog.apiKey", "")
 val postHogHost: String = localProps.getProperty("posthog.host", "https://us.i.posthog.com")
 
-val appVersionName = "1.0.0"
+val appVersionName = "1.0.1"
 
 plugins {
     alias(libs.plugins.android.application)
@@ -58,7 +58,11 @@ android {
         // 28+ unconditionally — the handful of newer APIs are version-gated.
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
+        // Must strictly increase on every published release: Android refuses
+        // to install an APK whose versionCode is lower than the installed
+        // one, so forgetting to bump this is what turns an update into "you
+        // have to uninstall first".
+        versionCode = 2
         versionName = appVersionName
 
         // Some IPTV providers reject or throttle the stock OkHttp/ExoPlayer
