@@ -831,4 +831,18 @@ Writes `app/src/main/res/mipmap-*`, `drawable-xhdpi/tv_banner.png` and `store/`
 (Play 512 icon and 1280×720 TV banner; Amazon 114/512 icons and feature
 graphic). Do not hand-edit those files — change the generator.
 
-Screenshots for both listings still need capturing on a real device.
+The wordmark it draws is a constant (`GenerateAssets.WORDMARK`) checked against
+`res/values/strings.xml`'s `app_name`, sized to fit rather than assumed to —
+the two drifted once already: everything under `store/` and the TV banner
+itself kept shipping "IPTV Player" for months after the app was renamed to
+"IPTV Brother Player", because the original code was a `drawString` sized for
+that specific, shorter string. Nothing failed when the name changed elsewhere;
+it just silently kept drawing the old one.
+
+`store/screenshots/` holds four 1920×1080 captures from the TV emulator —
+Live TV, playback, the EPG guide, Settings — taken against synthetic demo
+content (generic channel names, initials-only logos, public-domain test video)
+built solely for this purpose and not shipped or committed anywhere. Real
+broadcaster names and logos never appear in anything under `store/`, on
+purpose: this app ships with no content or provider of its own, and depicting
+real channels in its own marketing material would misrepresent that.

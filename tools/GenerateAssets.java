@@ -35,6 +35,11 @@ public final class GenerateAssets {
     private static final Color ACCENT_2  = new Color(0xED8A3D);
     private static final Color FG        = new Color(0xF1F7F2);
 
+    // Must match res/values/strings.xml's app_name — see fitText() for what
+    // goes wrong when this drifts from it.
+    private static final String WORDMARK = "IPTV Brother Player";
+    private static final String TAGLINE  = "Your playlists, on the big screen";
+
     public static void main(String[] args) throws IOException {
         File res = new File("app/src/main/res");
         File store = new File("store");
@@ -108,18 +113,43 @@ public final class GenerateAssets {
 
         drawMark(g, cx, cy, h * 0.52f);
 
-        g.setColor(FG);
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, Math.round(h * 0.155f)));
-        FontMetrics fm = g.getFontMetrics();
         float tx = w * 0.40f;
-        g.drawString("IPTV Player", tx, cy + fm.getAscent() * 0.36f - fm.getDescent() * 0.2f);
+        float maxTextWidth = w - tx - w * 0.03f;
+
+        g.setColor(FG);
+        FontMetrics fm = fitText(g, WORDMARK, Font.BOLD, Math.round(h * 0.155f), maxTextWidth);
+        g.drawString(WORDMARK, tx, cy + fm.getAscent() * 0.36f - fm.getDescent() * 0.2f);
 
         g.setColor(new Color(0xA8B4C8));
-        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, Math.round(h * 0.072f)));
-        g.drawString("Your playlists, on the big screen", tx + 2, cy + fm.getAscent() * 0.36f + h * 0.115f);
+        fitText(g, TAGLINE, Font.PLAIN, Math.round(h * 0.072f), maxTextWidth);
+        g.drawString(TAGLINE, tx + 2, cy + fm.getAscent() * 0.36f + h * 0.115f);
 
         g.dispose();
         return img;
+    }
+
+    /**
+     * Sets `g`'s font to the largest size (down to a floor, so a name that
+     * genuinely cannot fit degrades to overlapping rather than vanishing at
+     * size zero) at which `text` fits within `maxWidth`, and returns the
+     * resulting FontMetrics.
+     *
+     * Exists because the wordmark used to be a literal `drawString("IPTV
+     * Player", ...)` sized for that specific string — harmless until the app
+     * was renamed to "IPTV Brother Player" and every generated banner kept
+     * shipping the old, five-characters-shorter name, silently, because
+     * nothing about a fixed size+string pairing can fail loudly when the
+     * string changes elsewhere.
+     */
+    private static FontMetrics fitText(Graphics2D g, String text, int style, int startSize, float maxWidth) {
+        int size = startSize;
+        FontMetrics fm;
+        do {
+            g.setFont(new Font(Font.SANS_SERIF, style, size));
+            fm = g.getFontMetrics();
+            size -= 1;
+        } while (fm.stringWidth(text) > maxWidth && size >= 8);
+        return fm;
     }
 
     /**
