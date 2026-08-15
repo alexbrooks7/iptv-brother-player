@@ -8,9 +8,14 @@ programme guide.
 The app ships with **no channels, no content and no provider**. It is a player,
 in the same category as VLC or Kodi.
 
-**Distribution is sideload-only** — a single universal APK on GitHub Releases,
-not submitted to Google Play or the Amazon Appstore. It runs identically on
-Android TV, Google TV and Fire TV; nothing in the build varies by platform.
+**Distribution is two channels from one codebase.** The `sideload` build is a
+single universal APK on GitHub Releases, with internet-bandwidth sharing built
+in to fund development. The `store` build — for the Play Store and the Amazon
+Appstore, both of which prohibit apps that route other users' traffic through
+a device — has that SDK not merely turned off but not present in the APK at
+all. Both run identically otherwise on Android TV, Google TV and Fire TV;
+nothing else in the build varies by platform. See [Build](#build) and
+[Store policy](#store-policy).
 
 ---
 
@@ -23,7 +28,7 @@ Built against the phased plan in the brief. What is implemented versus deferred:
 | **1 — MVP** | M3U + Xtream import, Live TV, categories, favourites, settings | **Done** |
 | **2** | EPG grid, VOD & series browsing, resume, search | **Done** |
 | **3** | Catch-up/timeshift, multi-audio & subtitles, parental PIN, multi-profile | **Done except multi-profile** |
-| **4** | Low-end tuning, store submission | Build config and assets done; submission is yours |
+| **4** | Low-end tuning, store submission | Build config, assets and a store-clean build variant done; the actual Play Console / Amazon Developer Console upload is yours |
 | **5** | Companion mobile app, mosaic multi-view, licensing | **Not started** — see [Deliberately not built](#deliberately-not-built) |
 
 Everything below "Done" has been exercised on a running Android TV emulator, not
@@ -36,15 +41,46 @@ just compiled — see [Testing](#testing).
 Requires JDK 17 (Android Studio's bundled JBR is fine) and the Android SDK.
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :app:assembleSideloadDebug
 ```
 
-Build types are `debug` / `release` / `benchmark` — no product flavours. There
-used to be a `play`/`amazon` split; it was retired because the only two things
-it varied (a `STORE` string shown in Settings, and a Play-only device-filter
-manifest flag with no effect outside Play's own submission review) both existed
-solely for store submission, and this app does not go through a store. See
-[Architecture](#architecture) for what that flag actually did.
+One `distribution` flavour dimension, two flavours:
+
+| Flavour | applicationId | Has the Pawns SDK | For |
+|---|---|---|---|
+| `sideload` | `com.iptv.player` | Yes | GitHub Releases, direct download |
+| `store` | `com.iptv.player.store` | **No — not on the classpath at all** | Play Store, Amazon Appstore |
+
+Crossed with the three build types (`debug` / `release` / `benchmark`), so
+Gradle task names need the flavour: `assembleSideloadDebug`,
+`testStoreDebugUnitTest`, `bundleStoreRelease`, and so on — the unqualified
+`assembleDebug` now fails with "task is ambiguous" rather than picking one.
+
+**This is not the old `play`/`amazon` split**, which existed over a single
+manifest flag with no functional effect outside Play's own submission filter
+and was retired for exactly that reason — see [Fire TV / no-GMS](#fire-tv--no-gms).
+This one exists because `store` genuinely cannot ship a dependency that
+`sideload` needs, which no build-type or runtime flag can express: Play and
+Amazon scan a submission for the SDK's own classes, so disabling the feature
+in a build that still links the library would not satisfy either policy. The
+mechanism is a real Gradle source-set split —
+`sideloadImplementation(libs.pawns.sdk)` rather than an unconditional
+`implementation`, `PawnsManager` living in `src/sideload` with a no-op
+same-shaped stand-in in `src/store`, and the peer service's manifest entry and
+`FOREGROUND_SERVICE_SPECIAL_USE` permission only declared in
+`src/sideload/AndroidManifest.xml`. `main` code (`MainScreen`, `SettingsScreen`)
+calls `PawnsManager` and reads the app-owned `SharingState` type either way and
+never imports anything under `com.pawns.sdk` — see `sharing/SharingState.kt`.
+
+Both CI (`build.yml`, on every push) and the release job grep the compiled dex
+of a `store` build for `com/pawns/sdk` and fail if it is found — a regression
+guard against the dependency migrating back to `main` by accident, checked on
+every push, not only when someone remembers to look.
+
+PostHog analytics is **not** flavour-gated — it stays in both builds. It is a
+conventional client analytics SDK, not the thing either store's policy targets;
+the prohibition is specifically about routing other users' network traffic
+through a device.
 
 **Never judge performance from a debug build.** `debuggable=true` stops ART
 using its optimising compiler, and without the R8 pass every Compose call stays
@@ -56,30 +92,31 @@ debug `applicationId` so it installs over an existing app and profiles against
 a real imported playlist instead of an empty database.
 
 ```bash
-./gradlew :app:assembleBenchmark
-adb install -r app/build/outputs/apk/benchmark/app-benchmark.apk
+./gradlew :app:assembleSideloadBenchmark
+adb install -r app/build/outputs/apk/sideload/benchmark/app-sideload-benchmark.apk
 ```
 
 Two opt-in switches help when profiling:
 
 ```bash
-./gradlew :app:assembleBenchmark -PbenchmarkSymbols   # skip R8, keep symbols
-./gradlew :app:assembleDebug -PcomposeMetrics         # skippability report
+./gradlew :app:assembleSideloadBenchmark -PbenchmarkSymbols   # skip R8, keep symbols
+./gradlew :app:assembleSideloadDebug -PcomposeMetrics         # skippability report
 ```
 
 Install a debug build:
 
 ```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/sideload/debug/app-sideload-debug.apk
 ```
 
-Unit tests (parsers, URL normalisation, classification — no device needed):
+Unit tests (parsers, URL normalisation, classification — no device needed).
+Both flavours, since they now diverge in what is on the classpath:
 
 ```bash
-./gradlew :app:testDebugUnitTest
+./gradlew :app:testSideloadDebugUnitTest :app:testStoreDebugUnitTest
 ```
 
-### Signing & sideload builds
+### Signing & release builds
 
 `assembleRelease` falls back to the debug keystore so a fresh clone builds
 without setup — that APK is **sideloadable, but its signature is not stable
@@ -95,8 +132,14 @@ keyPassword=…
 ```
 
 ```bash
-./gradlew :app:assembleRelease   # app/build/outputs/apk/release/
+./gradlew :app:assembleSideloadRelease            # app/build/outputs/apk/sideload/release/
+./gradlew :app:assembleStoreRelease                # app/build/outputs/apk/store/release/  (Amazon)
+./gradlew :app:bundleStoreRelease                  # app/build/outputs/bundle/storeRelease/ (Play — .aab)
 ```
+
+The same release keystore signs all three; Play re-signs whatever you upload
+with its own app-signing key regardless (Play App Signing), and Amazon
+distributes the APK you give it as-is, the same as sideloading.
 
 ### Publishing a release
 
@@ -107,12 +150,23 @@ release and never changes:
 
 One universal APK — the same file works on Android TV, Google TV and Fire TV.
 
-Publishing is tag-triggered — `.github/workflows/release.yml` tests, builds and
-attaches the APK:
+Publishing is tag-triggered — `.github/workflows/release.yml` tests both
+flavours, builds all three release artifacts, and attaches only the sideload
+APK to the GitHub Release:
 
 ```bash
 git tag v1.0.1 && git push origin v1.0.1
 ```
+
+**The `store` APK and AAB are not attached to the release** — that page's
+"one universal APK" description and permanent link are for sideloaders, and a
+second, differently-branded APK sitting next to it would just confuse that
+audience. They are uploaded instead as a workflow run artifact named
+`store-submission-artifacts` (Actions tab → the run for that tag → Artifacts),
+for you to download and upload manually to Play Console and the Amazon
+Developer Console — actual store submission needs a developer account, a
+content rating questionnaire and a store listing, none of which this pipeline
+can do for you.
 
 **One-time setup: the signing key.** Android refuses to upgrade an installed
 app whose signature changed, so every release must be signed with the *same*
@@ -260,9 +314,15 @@ to devices advertising the feature, but it is not enforced by the OS at
 install time, so it has no effect on a sideloaded APK either way. There used
 to be a `play`/`amazon` build flavour split over exactly this one flag, kept
 apart because Play wanted it `true` and Amazon's submission process had
-historically excluded Fire TV devices when it was set. Neither store is in the
-picture now, so the flag is fixed at the safer, more compatible value and the
-flavour split was retired — see [Build](#build).
+historically excluded Fire TV devices when it was set. Neither store was in
+the picture at the time, so the flag was fixed at the safer, more compatible
+value and that flavour split was retired.
+
+A flavour split exists again now — `sideload`/`store`, over the Pawns SDK, not
+this flag — see [Build](#build). It is not a reversal of the reasoning above:
+this `leanback` value still needs no per-store variance, so both flavours
+carry the same fixed setting; the new split exists solely because `store`
+cannot link a dependency that `sideload` needs.
 
 ---
 
@@ -322,14 +382,30 @@ Adding Sentry later is a drop-in: implement the same three calls in
 
 ## Store policy
 
-Not currently applicable — distribution is sideload-only (see
-[Build](#build)) — kept here because the underlying design decisions are worth
-keeping regardless of distribution channel, and because that could change.
+### Bandwidth sharing
 
-Both Google Play and the Amazon Appstore have policies about apps that
-facilitate access to unlicensed content. A generic player that accepts
-user-supplied playlist URLs is standard and widely approved; what neither store
-permits is bundling or advertising pirate sources.
+Both the Play Store and the Amazon Appstore prohibit apps that route other
+users' internet traffic through a device without being a disclosed VPN/proxy
+product in their own right — Pawns.app is exactly that. The `store` build
+exists to satisfy this: see [Build](#build) for the flavour split, and
+[Internet sharing](#internet-sharing-pawnsapp) for the feature itself, which
+only ever ships in `sideload`.
+
+The bar this build was designed against is "the SDK's classes are not in the
+APK", not "the feature is switched off" — both stores' review can and does
+scan a submission for known SDK signatures, so a `store` build that still
+linked Pawns with the feature merely disabled at runtime would not have
+satisfied either policy. This is checked mechanically, not just by design: CI
+and the release job both grep a `store` build's compiled dex for
+`com/pawns/sdk` and fail if it is found.
+
+### Unlicensed content
+
+Both stores also have policies about apps that facilitate access to unlicensed
+content. A generic player that accepts user-supplied playlist URLs is standard
+and widely approved; what neither store permits is bundling or advertising
+pirate sources. This app ships with no channels, no content and no provider —
+see the top of this document — which is the same posture VLC and Kodi take.
 
 This app is built to sit clearly on the right side of that line:
 
@@ -349,6 +425,11 @@ broadcaster logos or channel names.
 
 ## Internet sharing (Pawns.app)
 
+**`sideload` builds only.** The `store` flavour does not link this SDK at
+all — see [Build](#build) and [Store policy](#store-policy) — so everything
+below describes `sideload` behaviour; a `store` build never shows any of this
+UI because `PawnsManager.available` is unconditionally `false` there.
+
 The app can route internet traffic for [Pawns.app](https://pawns.app) and its
 clients using a share of the device's bandwidth, as a way to fund development.
 It is **off until the viewer explicitly opts in**.
@@ -357,7 +438,9 @@ It is **off until the viewer explicitly opts in**.
 
 | Piece | File |
 |---|---|
-| SDK wrapper, fails closed when unconfigured | `sharing/PawnsManager.kt` |
+| SDK wrapper (real), `sideload` only | `src/sideload/.../sharing/PawnsManager.kt` |
+| No-op stand-in, `store` only | `src/store/.../sharing/PawnsManager.kt` |
+| App-owned service-state type both call sites share | `src/main/.../sharing/SharingState.kt` |
 | Disclosure and opt-in dialog | `ui/screens/ConsentDialog.kt` |
 | Shown on app open; re-openable | `ui/MainScreen.kt` |
 | On/off control and live status | `ui/screens/SettingsScreen.kt` |
@@ -633,7 +716,7 @@ real playlists, plus `XmltvTimeTest`, `XtreamBaseUrlTest`,
 `CategoryClassifierTest`, `ChannelNameMatchingTest`, `StableHashTest`.
 
 ```bash
-./gradlew :app:testDebugUnitTest      # 43 tests
+./gradlew :app:testSideloadDebugUnitTest      # 43 tests — same suite passes identically on :app:testStoreDebugUnitTest
 ```
 
 The app was also driven end to end on an Android TV emulator (API 34, 1080p)

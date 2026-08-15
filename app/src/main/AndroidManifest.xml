@@ -9,10 +9,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Required at runtime on API 33+ for the playback notification. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Required by the Pawns bandwidth-sharing peer service on API 34+. The
-         service only ever runs after the viewer explicitly accepts the consent
-         dialog, and only in builds configured with a pawns.apiKey. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- FOREGROUND_SERVICE_SPECIAL_USE and the Pawns peer service itself are
+         declared in src/sideload/AndroidManifest.xml, not here — this file is
+         shared by the store flavour, which must not declare a bandwidth-
+         sharing service at all. See build.gradle.kts "distribution". -->
 
     <!-- A TV has no touchscreen and (usually) no camera/telephony. Declaring
          these as not-required means nothing here can cause a device to reject
@@ -76,24 +76,5 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
-        <!-- Pawns bandwidth-sharing peer service.
-             Foreground rather than background, deliberately: while this runs the
-             device is acting as a gateway for someone else's internet traffic,
-             and a foreground service is what guarantees a persistent, visible
-             notification for as long as that is true. Nobody should have to
-             wonder whether sharing is still on. Started only from
-             PawnsManager.startSharing(), which is reached from the consent
-             dialog or the Settings toggle. -->
-        <service
-            android:name="com.pawns.sdk.internal.service.PeerServiceForeground"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Allows to share internet traffic by modifying device's network settings to be used as a gateway for internet traffic. Device becomes a gateway which allows to send and receive internet traffic." />
-        </service>
-        <meta-data
-            android:name="com.pawns.sdk.pawns_service_channel_name"
-            android:value="Internet Sharing" />
     </application>
 </manifest>

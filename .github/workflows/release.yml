@@ -116,29 +116,37 @@ jobs:
             fi
           } >> local.properties
 
+      # Both flavours, so a store-only regression can't slip through a release
+      # the same way the blank-keys bug slipped through when only one variant
+      # existed to test.
       - name: Test before shipping
-        run: ./gradlew :app:testDebugUnitTest
+        run: ./gradlew :app:testSideloadDebugUnitTest :app:testStoreDebugUnitTest
 
-      - name: Build signed release APK
-        run: ./gradlew :app:assembleRelease
+      # The AAB is built alongside the store APK because Play requires an App
+      # Bundle for new submissions; the APK form is for Amazon, which still
+      # takes one directly. Both come from the identical dependency graph, so
+      # the dex check below on the APK also speaks for the AAB.
+      - name: Build signed release artifacts
+        run: ./gradlew :app:assembleSideloadRelease :app:assembleStoreRelease :app:bundleStoreRelease
 
       # The failure this whole job exists to prevent is a *silently* feature-
       # less APK, so the build claiming success is not sufficient evidence.
       # This greps the compiled dex for the key that must be embedded, which
       # is the same check that caught v1.0.0 after the fact — run here so it
-      # can never ship unnoticed again.
-      - name: Verify keys are actually embedded in the APK
+      # can never ship unnoticed again. Scoped to the sideload artifact: the
+      # store build is never configured to carry the Pawns key at all.
+      - name: Verify keys are actually embedded in the sideload APK
         env:
           PAWNS_API_KEY: ${{ secrets.PAWNS_API_KEY }}
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: |
           workdir=$(mktemp -d)
-          unzip -o -q app/build/outputs/apk/release/app-release.apk 'classes*.dex' -d "$workdir"
+          unzip -o -q app/build/outputs/apk/sideload/release/app-sideload-release.apk 'classes*.dex' -d "$workdir"
           for pair in "PAWNS:$PAWNS_API_KEY" "POSTHOG:$POSTHOG_API_KEY"; do
             label=${pair%%:*}
             value=${pair#*:}
             if grep -qF "$value" "$workdir"/classes*.dex; then
-              echo "OK: $label key is embedded in the release APK"
+              echo "OK: $label key is embedded in the sideload release APK"
             else
               echo "::error::$label key is NOT in the built APK — the app would ship with that feature silently disabled."
               rm -rf "$workdir"
@@ -147,16 +155,37 @@ jobs:
           done
           rm -rf "$workdir"
 
+      # The mirror image of the check above: Play and Amazon both prohibit
+      # apps that route other users' traffic through a device, and that is a
+      # policy about what ships, not about a runtime flag. A store submission
+      # that still linked the Pawns SDK would be a policy violation regardless
+      # of whether the feature was ever enabled, so this fails the release
+      # outright rather than letting a human miss it during upload.
+      - name: Verify the store artifacts have no trace of the Pawns SDK
+        run: |
+          workdir=$(mktemp -d)
+          unzip -o -q app/build/outputs/apk/store/release/app-store-release.apk 'classes*.dex' -d "$workdir"
+          if grep -qa "com/pawns/sdk" "$workdir"/classes*.dex; then
+            echo "::error::Pawns SDK classes found in the store build — this must never be submitted to Play or Amazon."
+            rm -rf "$workdir"
+            exit 1
+          fi
+          echo "OK: no Pawns SDK classes in the store build"
+          rm -rf "$workdir"
+
       # Renamed to a fixed, version-free filename on purpose. The permanent
       # download URL is
       #   /releases/latest/download/iptv-brother-player.apk
       # and that only keeps working if the asset name never changes between
       # releases. Putting the version in the filename would break the link on
-      # every release, which defeats the point of having one.
-      - name: Stage APK under a stable name
+      # every release, which defeats the point of having one. Only the
+      # sideload APK goes here — it is the one build meant for the public to
+      # download directly; the store artifacts below are for manual upload to
+      # Play Console / Amazon Developer Console, not general distribution.
+      - name: Stage sideload APK under a stable name
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk \
+          cp app/build/outputs/apk/sideload/release/app-sideload-release.apk \
              dist/iptv-brother-player.apk
 
       - name: Publish release
@@ -173,6 +202,23 @@ jobs:
 
             This app ships with no channels, no content and no provider. You
             supply your own playlist.
+
+            Store submissions (Play Store, Amazon Appstore) are built from
+            this same tag without the bandwidth-sharing SDK — see the
+            "store-submission-artifacts" file attached to this workflow run,
+            not this release, for those.
+
+      # Not attached to the GitHub Release: these are inputs to a manual Play
+      # Console / Amazon Developer Console upload, not something the public
+      # should download from here, and the release body above says so.
+      - name: Upload store submission artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-submission-artifacts
+          path: |
+            app/build/outputs/apk/store/release/app-store-release.apk
+            app/build/outputs/bundle/storeRelease/app-store-release.aab
+          retention-days: 90
 
       # The keystore is on an ephemeral runner that is discarded anyway, but
       # deleting it explicitly means a later step added to this job can never

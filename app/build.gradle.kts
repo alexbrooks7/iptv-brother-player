@@ -73,6 +73,38 @@ android {
         buildConfigField("String", "POSTHOG_HOST", "\"$postHogHost\"")
     }
 
+    // Two ways this app reaches a device, gated on a single axis. Same
+    // codebase and same release signing key either way; what differs is
+    // which flavour has the Pawns bandwidth-sharing SDK on its classpath at
+    // all — see the sideloadImplementation/PawnsManager comments below and
+    // README "Store vs sideload builds".
+    flavorDimensions += "distribution"
+    productFlavors {
+        // What is already live: sideloaded only, bandwidth sharing enabled.
+        // Unsuffixed applicationId so this flavour is byte-for-byte what the
+        // existing GitHub release pipeline and permanent download link
+        // already produce — adding the dimension must not silently change
+        // what that path builds.
+        create("sideload") {
+            dimension = "distribution"
+        }
+        // Built for the Play Store and the Amazon Appstore. Both prohibit
+        // apps that route other users' traffic through a device, so this
+        // flavour must not merely disable that feature but never link the
+        // SDK that provides it — see PawnsManager in each source set.
+        //
+        // Suffixed applicationId so a store build installs side by side with
+        // a sideload build during testing rather than overwriting it. This
+        // is the one thing to confirm deliberately before the first Play
+        // Console / Amazon Developer Console upload: an applicationId cannot
+        // change after a store listing exists, so treat this default as a
+        // placeholder to approve, not a foregone conclusion.
+        create("store") {
+            dimension = "distribution"
+            applicationIdSuffix = ".store"
+        }
+    }
+
     signingConfigs {
         if (hasReleaseKey) {
             create("release") {
@@ -198,7 +230,12 @@ dependencies {
     // the older Fire OS and AOSP TV builds that make up much of the install
     // base, which are also the slowest devices and the ones that need it most.
     implementation(libs.androidx.profileinstaller)
-    implementation(libs.pawns.sdk)
+    // Only on the sideload flavour's classpath. This, not a runtime flag, is
+    // what keeps the SDK's classes out of the store build's APK — see
+    // PawnsManager in src/sideload and src/store.
+    "sideloadImplementation"(libs.pawns.sdk)
+    // Plain analytics, not the sharing SDK — no store restriction applies,
+    // so this stays common to both flavours.
     implementation(libs.posthog.android)
 
     implementation(libs.media3.exoplayer)

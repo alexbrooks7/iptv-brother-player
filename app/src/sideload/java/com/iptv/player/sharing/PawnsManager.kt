@@ -7,10 +7,11 @@ import com.iptv.player.R
 import com.iptv.player.util.Diagnostics
 import com.pawns.sdk.common.dto.ServiceConfig
 import com.pawns.sdk.common.dto.ServiceNotificationPriority
-import com.pawns.sdk.common.dto.ServiceState
+import com.pawns.sdk.common.dto.ServiceState as SdkServiceState
 import com.pawns.sdk.common.dto.ServiceType
 import com.pawns.sdk.common.sdk.Pawns
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /**
  * Thin wrapper around the Pawns.app bandwidth-sharing SDK.
@@ -31,6 +32,15 @@ import kotlinx.coroutines.flow.Flow
  * Mirrors the primitives used by the official demo
  * (github.com/pawns-app/android-pawns-sdk-demo) so behaviour can be compared
  * against it directly.
+ *
+ * This file lives in `src/sideload`, not `src/main`, and is the only place in
+ * the app that imports `com.pawns.sdk`. The `store` flavour — built for the
+ * Play Store and Amazon Appstore, both of which prohibit bandwidth-sharing
+ * SDKs like this one — has its own `PawnsManager` in `src/store` with the
+ * same public shape but no SDK dependency behind it, so the library's classes
+ * are never linked into that flavour's APK at all. `main` code (MainScreen,
+ * SettingsScreen) calls this same API either way and never imports the SDK
+ * directly; see `SharingState` for the type that makes that possible.
  */
 object PawnsManager {
 
@@ -80,8 +90,8 @@ object PawnsManager {
     }
 
     /** Null when the feature is not configured — callers treat that as "off". */
-    fun serviceState(): Flow<ServiceState>? =
-        if (available) Pawns.getInstance().getServiceState() else null
+    fun serviceState(): Flow<SharingState>? =
+        if (available) Pawns.getInstance().getServiceState().map { it.toSharingState() } else null
 
     fun startSharing(context: Context) {
         if (!available) return
@@ -94,4 +104,13 @@ object PawnsManager {
         Diagnostics.info("sharing", "Stopping bandwidth sharing")
         Pawns.getInstance().stopSharing(context)
     }
+}
+
+/** The one place the SDK's own state type is named — see [SharingState]. */
+private fun SdkServiceState.toSharingState(): SharingState = when (this) {
+    is SdkServiceState.Off -> SharingState.Off
+    is SdkServiceState.On -> SharingState.On
+    is SdkServiceState.Launched.Running -> SharingState.Running
+    is SdkServiceState.Launched.LowBattery -> SharingState.LowBattery
+    is SdkServiceState.Launched.Error -> SharingState.Error(error.toString())
 }

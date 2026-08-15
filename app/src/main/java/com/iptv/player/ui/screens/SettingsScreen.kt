@@ -28,12 +28,12 @@ import com.iptv.player.data.prefs.Settings
 import com.iptv.player.ui.components.SectionHeader
 import com.iptv.player.ui.components.SettingRow
 import com.iptv.player.sharing.PawnsManager
+import com.iptv.player.sharing.SharingState
 import com.iptv.player.ui.util.labelRes
 import com.iptv.player.ui.util.next
 import com.iptv.player.ui.util.tvFocusGroup
 import com.iptv.player.ui.vm.SettingsViewModel
 import com.iptv.player.util.Diagnostics
-import com.pawns.sdk.common.dto.ServiceState
 import kotlinx.coroutines.flow.MutableStateFlow
 
 private enum class SettingsPanel { NONE, PARENTAL, DIAGNOSTICS, SET_PIN }
@@ -435,16 +435,16 @@ private fun DiagnosticsPanel(onBack: () -> Unit) {
 @Composable
 private fun SharingRow(onReviewSharing: () -> Unit, onSharingEnabledChange: (Boolean) -> Unit) {
     val context = LocalContext.current
-    val stateFlow = remember { PawnsManager.serviceState() ?: MutableStateFlow(ServiceState.Off) }
-    val serviceState by stateFlow.collectAsStateWithLifecycle(ServiceState.Off)
+    val stateFlow = remember { PawnsManager.serviceState() ?: MutableStateFlow(SharingState.Off) }
+    val serviceState by stateFlow.collectAsStateWithLifecycle(SharingState.Off)
 
-    val active = serviceState is ServiceState.On || serviceState is ServiceState.Launched.Running
+    val active = serviceState is SharingState.On || serviceState is SharingState.Running
     val summary = when (val s = serviceState) {
-        is ServiceState.Off -> stringResource(R.string.settings_sharing_off)
-        is ServiceState.On -> stringResource(R.string.settings_sharing_on)
-        is ServiceState.Launched.Running -> stringResource(R.string.settings_sharing_on)
-        is ServiceState.Launched.LowBattery -> stringResource(R.string.settings_sharing_low_battery)
-        is ServiceState.Launched.Error -> stringResource(R.string.settings_sharing_error, s.error.toString())
+        is SharingState.Off -> stringResource(R.string.settings_sharing_off)
+        is SharingState.On -> stringResource(R.string.settings_sharing_on)
+        is SharingState.Running -> stringResource(R.string.settings_sharing_on)
+        is SharingState.LowBattery -> stringResource(R.string.settings_sharing_low_battery)
+        is SharingState.Error -> stringResource(R.string.settings_sharing_error, s.message)
     }
 
     SettingRow(
