@@ -76,6 +76,24 @@ data class Settings(
      * available from Settings.
      */
     val sharingConsentAsked: Boolean = false,
+
+    /**
+     * Whether bandwidth sharing should be running.
+     *
+     * A third flag alongside the SDK's consent bit and [sharingConsentAsked],
+     * because neither can answer "should this be on right now". The SDK's
+     * `isConsentGiven()` persists across launches but only records that the
+     * disclosure was once accepted — it stays true after the viewer switches
+     * sharing off in Settings, since withdrawing consent entirely is a
+     * different act from pausing the feature.
+     *
+     * Without this, the two obvious start-up rules are both wrong: resuming
+     * on the consent bit alone silently re-enables sharing for someone who
+     * deliberately turned it off, and not resuming at all means the service
+     * only ever runs in the session where it was switched on. The first
+     * overrides an explicit choice; the second is what shipped.
+     */
+    val sharingEnabled: Boolean = false,
 )
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")
@@ -122,6 +140,7 @@ class SettingsStore(private val context: Context) {
                 hideLockedCategories = p[Keys.HIDE_LOCKED] ?: false,
                 languageTag = p[Keys.LANGUAGE],
                 sharingConsentAsked = p[Keys.SHARING_ASKED] ?: false,
+                sharingEnabled = p[Keys.SHARING_ENABLED] ?: false,
             )
         }
 
@@ -140,6 +159,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setAutoRefreshEpg(value: Boolean) = edit { it[Keys.REFRESH_EPG] = value }
     suspend fun setHideLockedCategories(value: Boolean) = edit { it[Keys.HIDE_LOCKED] = value }
     suspend fun setSharingConsentAsked() = edit { it[Keys.SHARING_ASKED] = true }
+    suspend fun setSharingEnabled(value: Boolean) = edit { it[Keys.SHARING_ENABLED] = value }
     suspend fun setLanguageTag(value: String?) = edit { p ->
         if (value == null) p.remove(Keys.LANGUAGE) else p[Keys.LANGUAGE] = value
     }
@@ -186,6 +206,7 @@ class SettingsStore(private val context: Context) {
         val HIDE_LOCKED = booleanPreferencesKey("hide_locked")
         val LANGUAGE = stringPreferencesKey("language_tag")
         val SHARING_ASKED = booleanPreferencesKey("sharing_consent_asked")
+        val SHARING_ENABLED = booleanPreferencesKey("sharing_enabled")
     }
 
     companion object {

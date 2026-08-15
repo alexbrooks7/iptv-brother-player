@@ -44,6 +44,20 @@ class AppViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /**
+     * Whether sharing should be resumed on start-up — null until DataStore has
+     * said, for the same reason as [sharingConsentAsked].
+     *
+     * Here the seeded default is the *safe* direction (`false` reads as "do not
+     * start"), so a wrong guess would never route traffic without permission.
+     * It stays nullable anyway so the resume decision is made once, against a
+     * real value, rather than being skipped on every cold start because the
+     * disk read had not landed yet.
+     */
+    val sharingEnabled: StateFlow<Boolean?> = settingsStore.flow
+        .map { it.sharingEnabled }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /**
      * Null until the database has answered, then the real list.
      *
      * The nullable initial value is load-bearing, not defensive style. A plain

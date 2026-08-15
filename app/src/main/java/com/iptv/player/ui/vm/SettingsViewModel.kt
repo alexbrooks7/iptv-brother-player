@@ -51,6 +51,9 @@ class SettingsViewModel(
 
     /** Records that the sharing disclosure was answered, either way. */
     fun markSharingConsentAsked() = viewModelScope.launch { store.setSharingConsentAsked() }
+
+    /** Remembers the on/off choice so start-up can restore it. */
+    fun setSharingEnabled(value: Boolean) = viewModelScope.launch { store.setSharingEnabled(value) }
     fun setReconnectAttempts(value: Int) = viewModelScope.launch { store.setReconnectAttempts(value) }
     fun setResumeLastChannel(value: Boolean) = viewModelScope.launch { store.setResumeLastChannel(value) }
     fun setAspectMode(value: AspectMode) = viewModelScope.launch { store.setAspectMode(value) }

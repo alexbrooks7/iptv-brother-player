@@ -362,6 +362,7 @@ It is **off until the viewer explicitly opts in**.
 | Shown on app open; re-openable | `ui/MainScreen.kt` |
 | On/off control and live status | `ui/screens/SettingsScreen.kt` |
 | "Asked once" flag | `Settings.sharingConsentAsked` |
+| "Should be running" flag | `Settings.sharingEnabled` |
 
 **The prompt appears on app open, not buried in Settings.** A feature that
 routes strangers' traffic through someone's home connection has to be an
@@ -376,7 +377,22 @@ it alone would nag forever after a decline.
 That row reads the SDK's live service state rather than the consent flag,
 because consent being granted does not prove the service is running — it can be
 paused on low battery or failing — and reporting "On" over an erroring service
-would be a claim the viewer cannot check.
+would be a claim the viewer cannot check. The add-playlist screen has a Settings
+button for the same reason: it is where a first-run viewer lands, it has no side
+navigation, and Back deliberately keeps them there until a playlist exists, so
+without it the dialog's "you can turn it off at any time" would not be true yet.
+
+**The choice survives a restart**, which needs a third flag. The SDK's service
+does not outlive the process, so `MainScreen` restarts it on launch — but it
+gates that on `sharingEnabled`, not on the SDK's consent bit. Consent stays
+granted when someone merely switches sharing off, so resuming from it would
+quietly overturn a deliberate opt-out on the next launch; resuming from nothing
+at all was the original bug, where the service only ever ran in the session it
+was switched on in and every later launch shared nothing while Settings honestly
+reported "Off". It is started from composition rather than `IptvApp.onCreate`
+because it is a foreground service, and `Application.onCreate` also runs when
+WorkManager wakes the app to refresh a playlist — starting one from that path
+throws `ForegroundServiceStartNotAllowedException` on API 31+.
 
 **The SDK's own consent Activity is not used for the on-open prompt.** Custom
 implementations are permitted, and the bundled one is built for phones: every
@@ -463,6 +479,7 @@ about what matters. What is tracked:
 | `favorite_toggled` | `LiveViewModel.toggleFavorite` | |
 | `parental_pin_set` | `SettingsViewModel.setPin` / `clearPin` | Records only `enabled: true/false` — the PIN itself never reaches this call |
 | `sharing_consent` | `MainScreen`'s `ConsentDialog` callbacks | Opt-in rate for the sharing feature above, complementary to Pawns' own internal tracking |
+| `sharing_toggle` | Settings → Internet sharing row | Later opt-outs and opt-ins. `sharing_consent` only ever records the *first* answer, so without this the funnel shows opt-ins and never opt-outs, and active sharers look permanently overstated |
 
 ### Verifying it on a device with no browser
 

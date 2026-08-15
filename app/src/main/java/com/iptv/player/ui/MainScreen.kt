@@ -87,6 +87,7 @@ fun MainScreen() {
     val activeSource by appViewModel.activeSource.collectAsStateWithLifecycle()
     val sources by appViewModel.sourceList.collectAsStateWithLifecycle()
     val consentAsked by appViewModel.sharingConsentAsked.collectAsStateWithLifecycle()
+    val sharingEnabled by appViewModel.sharingEnabled.collectAsStateWithLifecycle()
 
     val activity = LocalContext.current as? Activity
     val context = LocalContext.current
@@ -114,6 +115,38 @@ fun MainScreen() {
         val asked = consentAsked ?: return@LaunchedEffect
         if (asked || PawnsManager.hasConsent()) return@LaunchedEffect
         showConsent = true
+    }
+
+    /**
+     * Resume sharing that was already switched on in an earlier session.
+     *
+     * The SDK's service does not survive the process, so without this the
+     * feature only ever ran in the session where it was turned on: accept the
+     * dialog, watch, close the app, and every launch afterwards silently shared
+     * nothing while Settings honestly reported "Off". Consent was still granted,
+     * so nothing re-asked and nothing looked wrong.
+     *
+     * Gated on the stored preference rather than on `hasConsent()`, which stays
+     * true after someone switches sharing off in Settings — resuming off that
+     * bit would quietly overturn a deliberate opt-out on the next launch.
+     *
+     * Started from here, not `IptvApp.onCreate`, because this is a foreground
+     * service: `Application.onCreate` also runs when WorkManager wakes the app
+     * to refresh a playlist, and starting one from that path throws
+     * `ForegroundServiceStartNotAllowedException` on API 31+. Composition means
+     * an Activity is actually on screen.
+     */
+    var sharingResumed by remember { mutableStateOf(false) }
+    LaunchedEffect(sharingEnabled) {
+        if (sharingResumed || !PawnsManager.available) return@LaunchedEffect
+        // Null means DataStore has not read yet, so there is nothing to decide
+        // from. Any real value settles it — including `false`, which is why the
+        // latch is set before the enabled check rather than after: leaving it
+        // unset on "off" would let a later Settings toggle re-enter this effect
+        // and start the service a second time.
+        val enabled = sharingEnabled ?: return@LaunchedEffect
+        sharingResumed = true
+        if (enabled && PawnsManager.hasConsent()) PawnsManager.startSharing(context)
     }
 
     // "Open the last channel on start-up", applied once per process.
@@ -197,6 +230,9 @@ fun MainScreen() {
                 PawnsManager.setConsentGiven(true)
                 PawnsManager.startSharing(context)
                 settingsViewModel.markSharingConsentAsked()
+                // Remembered so later launches resume it — see sharingResumed.
+                settingsViewModel.setSharingEnabled(true)
+                sharingResumed = true
                 IptvAnalytics.event("sharing_consent", mapOf("granted" to true))
             },
             onDecline = {
@@ -207,6 +243,8 @@ fun MainScreen() {
                 // clearing the flag. A no-op when it is not running.
                 PawnsManager.stopSharing(context)
                 settingsViewModel.markSharingConsentAsked()
+                settingsViewModel.setSharingEnabled(false)
+                sharingResumed = true
                 IptvAnalytics.event("sharing_consent", mapOf("granted" to false))
             },
         )

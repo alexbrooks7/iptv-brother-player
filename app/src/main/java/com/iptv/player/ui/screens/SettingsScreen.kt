@@ -21,6 +21,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.iptv.player.BuildConfig
 import com.iptv.player.R
+import com.iptv.player.analytics.IptvAnalytics
 import com.iptv.player.data.prefs.AspectMode
 import com.iptv.player.data.prefs.BufferProfile
 import com.iptv.player.data.prefs.Settings
@@ -267,7 +268,19 @@ fun SettingsScreen(
         // build shows no trace of the feature rather than a dead toggle.
         if (PawnsManager.available) {
             item { SectionHeader(stringResource(R.string.settings_section_sharing)) }
-            item { SharingRow(onReviewSharing = onReviewSharing) }
+            item {
+                SharingRow(
+                    onReviewSharing = onReviewSharing,
+                    onSharingEnabledChange = { enabled ->
+                        viewModel.setSharingEnabled(enabled)
+                        // Tracked here as well as at the consent dialog: the
+                        // dialog only ever records the first answer, so without
+                        // this the funnel shows opt-ins and never opt-outs, and
+                        // active sharers look permanently overstated.
+                        IptvAnalytics.event("sharing_toggle", mapOf("enabled" to enabled))
+                    },
+                )
+            }
             item {
                 SettingRow(
                     title = stringResource(R.string.settings_sharing_review),
@@ -420,7 +433,7 @@ private fun DiagnosticsPanel(onBack: () -> Unit) {
  * check. The row reports what is actually happening.
  */
 @Composable
-private fun SharingRow(onReviewSharing: () -> Unit) {
+private fun SharingRow(onReviewSharing: () -> Unit, onSharingEnabledChange: (Boolean) -> Unit) {
     val context = LocalContext.current
     val stateFlow = remember { PawnsManager.serviceState() ?: MutableStateFlow(ServiceState.Off) }
     val serviceState by stateFlow.collectAsStateWithLifecycle(ServiceState.Off)
@@ -440,9 +453,18 @@ private fun SharingRow(onReviewSharing: () -> Unit) {
         value = active.onOff(),
         onClick = {
             when {
-                active -> PawnsManager.stopSharing(context)
+                active -> {
+                    PawnsManager.stopSharing(context)
+                    // Persisted, or the next launch would resume it and quietly
+                    // undo this. Consent deliberately stays granted: switching
+                    // the feature off is not the same act as withdrawing it.
+                    onSharingEnabledChange(false)
+                }
                 // Already consented, so no need to ask again — just resume.
-                PawnsManager.hasConsent() -> PawnsManager.startSharing(context)
+                PawnsManager.hasConsent() -> {
+                    PawnsManager.startSharing(context)
+                    onSharingEnabledChange(true)
+                }
                 // Never consented, or previously declined. The disclosure has
                 // to come before any traffic flows, so this reopens it rather
                 // than silently switching the feature on.
