@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — IPTV Brother Player</title>
+<meta name="description" content="What IPTV Brother Player collects, what it never does, and why.">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface-2: #F0EEE7;
+    --ink: #16241C;
+    --ink-soft: #4B5C52;
+    --ink-faint: #7C8B81;
+    --accent: #1E7A4C;
+    --warm: #B85F1B;
+    --line: #DDE0D6;
+    --good-ink: #1B5E3A;
+    --no-ink: #7A4A1A;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0B160F;
+      --surface: #142219;
+      --surface-2: #1B2A20;
+      --ink: #F1F7F2;
+      --ink-soft: #B7C6BC;
+      --ink-faint: #7E9186;
+      --accent: #49B27F;
+      --warm: #ED8A3D;
+      --line: #24352A;
+      --good-ink: #7FD9A6;
+      --no-ink: #E3A05C;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+  }
+  @media (max-width: 600px) {
+    .page { padding: 2.75rem 1.25rem 4rem; }
+  }
+
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  h1 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 2.65rem);
+    line-height: 1.12;
+    margin: 0.5rem 0 0.4rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    max-width: 52ch;
+    margin: 0 0 0.75rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  .glance {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 2rem 0 3rem;
+  }
+  @media (max-width: 560px) {
+    .glance { grid-template-columns: 1fr; }
+  }
+  .glance-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.35rem 1.4rem;
+  }
+  .glance-card h2 {
+    margin: 0 0 0.85rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-family: inherit;
+  }
+  .glance-card.yes h2 { color: var(--good-ink); }
+  .glance-card.no h2 { color: var(--no-ink); }
+  .glance-card ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .glance-card li {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    padding-left: 1.35rem;
+    position: relative;
+    line-height: 1.45;
+  }
+  .glance-card.yes li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0.42em;
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    background: var(--good-ink);
+  }
+  .glance-card.no li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0.5em;
+    width: 8px; height: 2px;
+    background: var(--no-ink);
+  }
+
+  section { margin: 2.75rem 0; }
+  section > h2 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 0.2rem;
+    letter-spacing: -0.005em;
+  }
+  section > .section-note {
+    color: var(--ink-faint);
+    font-size: 0.88rem;
+    margin: 0 0 1.1rem;
+  }
+  h3.sub {
+    font-size: 1.02rem;
+    font-weight: 700;
+    margin: 1.6rem 0 0.5rem;
+  }
+  p { margin: 0.8rem 0; color: var(--ink); }
+  p.soft { color: var(--ink-soft); }
+  ul.plain, ol.plain {
+    margin: 0.7rem 0;
+    padding-left: 1.3rem;
+  }
+  ul.plain li, ol.plain li {
+    margin: 0.45rem 0;
+    color: var(--ink);
+  }
+  a {
+    color: var(--accent);
+    text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    text-underline-offset: 0.15em;
+  }
+  a:hover { text-decoration-color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.1rem 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  thead th {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--surface-2);
+    font-weight: 700;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td code, p code {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 0.1em 0.4em;
+    border-radius: 5px;
+    color: var(--ink);
+  }
+
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 1rem 1.2rem;
+    margin: 1.1rem 0;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .callout strong { color: var(--ink); }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">Privacy Policy</div>
+  <h1>IPTV Brother Player</h1>
+  <p class="subtitle">
+    A player you supply your own playlist to. This page explains, precisely,
+    what the app sends off your device and what never leaves it.
+  </p>
+  <div class="meta">
+    <span><strong>Effective</strong> 15 August 2026</span>
+    <span><strong>Applies to</strong> both the sideload and store builds of IPTV Brother Player</span>
+    <span><strong>Developer</strong> Alex Brooks, MB</span>
+  </div>
+
+  <div class="glance">
+    <div class="glance-card yes">
+      <h2>What we collect</h2>
+      <ul>
+        <li>Anonymous product analytics — screens viewed, and a short list of app events like "a playlist synced" or "playback failed"</li>
+        <li>Standard device/session technical data attached to those events (device model, OS version, locale, timezone)</li>
+        <li><em>Sideload build only, and only if you say yes:</em> your IP address and approximate location, to route bandwidth through Pawns.app</li>
+      </ul>
+    </div>
+    <div class="glance-card no">
+      <h2>What we never collect</h2>
+      <ul>
+        <li>Your name, email, or any account — there is no account</li>
+        <li>Your playlist URL, provider login, or password</li>
+        <li>Which channels or shows you actually watch</li>
+        <li>Screen recordings of you using the app</li>
+        <li>Anything to sell to advertisers — there are no ads</li>
+      </ul>
+    </div>
+  </div>
+
+  <section>
+    <h2>The short version</h2>
+    <p>
+      IPTV Brother Player plays a playlist you supply — an M3U URL, a local file,
+      or an Xtream Codes login. It ships with no channels and no content of its
+      own. Because of that, most of what a typical app's privacy policy has to
+      cover simply doesn't apply here: there's no account to create, no profile
+      to build, and the app has no server of its own that your playlist or
+      viewing activity passes through.
+    </p>
+    <p>
+      What this policy actually covers is two optional, separately-controlled
+      things: anonymous product analytics (so the developer can tell whether
+      the app works), and an opt-in bandwidth-sharing feature that funds
+      development, present only in the version distributed outside app stores.
+    </p>
+  </section>
+
+  <section>
+    <h2>Usage &amp; device analytics</h2>
+    <p class="section-note">Present in every build, sending data only if the developer's build was configured with an analytics key.</p>
+    <p>
+      The app uses <a href="https://posthog.com" target="_blank" rel="noopener">PostHog</a>,
+      a product-analytics service, to understand which parts of the app get
+      used and whether things like adding a playlist or playing a channel
+      actually work. Each install is identified by a random ID generated on
+      your device — not your name, email, or any account, because none
+      exists.
+    </p>
+    <h3 class="sub">Standard technical data</h3>
+    <p>Every analytics event carries the usual technical context a device sends with any network request:</p>
+    <ul class="plain">
+      <li>Device manufacturer and model, screen size, Android version</li>
+      <li>App version and build number</li>
+      <li>Locale and time zone</li>
+      <li>Coarse network type (Wi-Fi / cellular / Bluetooth on or off — not your IP-based location)</li>
+    </ul>
+    <h3 class="sub">What's tracked, and why</h3>
+    <p>The list is deliberately short. A settings toggle or a channel change doesn't get logged — only the handful of moments below:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Event</th><th>What it records</th></tr></thead>
+        <tbody>
+          <tr><td><code>screen</code></td><td>Which section of the app you navigated to (Live TV, Guide, Settings, etc.) — not what's on screen within it</td></tr>
+          <tr><td><code>source_added</code></td><td>That a playlist was added, and by which method (URL / file / Xtream) — never the URL or login itself</td></tr>
+          <tr><td><code>source_synced</code></td><td>Whether a playlist sync succeeded, and a channel/movie/series <em>count</em> — never channel names or a provider hostname</td></tr>
+          <tr><td><code>content_played</code></td><td>The <em>kind</em> of thing played (live / movie / series / catch-up) — never which one</td></tr>
+          <tr><td><code>playback_failed</code></td><td>A stable error category (e.g. "timeout") for something that visibly failed to play — never the stream URL</td></tr>
+          <tr><td><code>favorite_toggled</code></td><td>That a favourite was added or removed — not which channel</td></tr>
+          <tr><td><code>parental_pin_set</code></td><td>Whether a parental PIN is enabled — never the PIN</td></tr>
+          <tr><td><code>sharing_consent</code> / <code>sharing_toggle</code></td><td>Whether bandwidth sharing was accepted, declined, or later switched — see below</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="soft">
+      Screen recording of app usage is permanently disabled in the code, not
+      merely unconfigured — the screen you spend the most time on is a
+      full-screen video player, and recording it would be a proxy for your
+      actual viewing habits well beyond what the events above capture.
+    </p>
+  </section>
+
+  <section>
+    <h2>Internet bandwidth sharing</h2>
+    <p class="section-note">Sideload build only. Never present in the version submitted to app stores.</p>
+    <p>
+      The version of IPTV Brother Player distributed as a direct APK download
+      can use a portion of your device's idle internet bandwidth to route
+      traffic for <a href="https://pawns.app" target="_blank" rel="noopener">Pawns.app</a>
+      and its clients, as a way to fund development. This is <strong>off until
+      you explicitly say yes</strong>, on a dialog shown the first time you open
+      the app — never enabled silently, and never on by default.
+    </p>
+    <p>If you accept, Pawns.app receives your <strong>IP address</strong> and
+      <strong>approximate location</strong>, and it runs as a visible background
+      service with a permanent notification for as long as it's active. You
+      can turn it off at any time from Settings → Internet sharing, which
+      stops the service immediately. Declining, or switching it off later, is
+      remembered — you are never asked again automatically.
+    </p>
+    <p>
+      Pawns.app is a third party with its own data practices, separate from
+      this app's: <a href="https://pawns.app/privacy-policy" target="_blank" rel="noopener">read Pawns.app's privacy policy</a>
+      for what it does with that data.
+    </p>
+    <p class="soft">
+      The build submitted to the Play Store and the Amazon Appstore does not
+      include this SDK at all — not merely disabled, but not present in that
+      build's app package — because both stores prohibit apps that route other
+      users' traffic through a device.
+    </p>
+  </section>
+
+  <section>
+    <h2>What stays on your device</h2>
+    <p class="section-note">Never transmitted anywhere by this app.</p>
+    <ul class="plain">
+      <li><strong>Your playlist and provider details</strong> — the M3U URL, file, or Xtream server/username/password you enter, plus the channel and programme-guide data imported from it, live only in the app's local database.</li>
+      <li><strong>Provider credentials are encrypted at rest</strong>, with a key generated in the Android Keystore that is non-exportable and, on supported hardware, never enters app memory in the clear.</li>
+      <li><strong>The diagnostics log</strong> (Settings → Diagnostics log) — a rolling record of the last 300 network and playback events, kept only in memory to help you or a provider debug a stream that won't play. It is never uploaded, and any credentials are redacted before they're shown even to you.</li>
+      <li><strong>An exported backup</strong> (Settings → Backup) never includes provider passwords — an imported login has to be re-entered after a restore, by design.</li>
+    </ul>
+    <p>
+      Uninstalling the app deletes all of the above. There is nothing left
+      behind on any server, because none of it was ever sent to one.
+    </p>
+  </section>
+
+  <section>
+    <h2>Children's privacy</h2>
+    <p>
+      IPTV Brother Player is a general-audience player, not directed at
+      children, and the app does not knowingly collect personal information
+      from anyone. Because the app plays whatever a user supplies, it includes
+      parental controls (Settings → Parental controls) that let a parent lock
+      categories a playlist marks as adult behind a PIN.
+    </p>
+  </section>
+
+  <section>
+    <h2>Your choices</h2>
+    <ul class="plain">
+      <li>Decline or withdraw bandwidth-sharing consent any time in Settings — see above.</li>
+      <li>Clear the diagnostics log or your watch history from Settings → Data.</li>
+      <li>Uninstall the app to remove everything it stored, locally and permanently.</li>
+      <li>
+        For anything analytics has recorded against your device's random
+        install ID, contact the developer using the details below — as an
+        anonymous ID with no name or email behind it, a specific request may
+        only be actionable as "stop sending data from this device," which
+        uninstalling already accomplishes.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Changes to this policy</h2>
+    <p>
+      If what the app collects changes, this page will be updated and the
+      "Effective" date above will change with it. Material changes — a new
+      category of data, or a new third party — will also be reflected in the
+      app's release notes.
+    </p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <div class="callout">
+      <strong>Questions about this policy, or a request about your data:</strong><br>
+      alexbrooks77&#64;protonmail.com
+    </div>
+  </section>
+
+  <footer>
+    IPTV Brother Player ships with no channels, no content and no provider of
+    its own — you supply your own playlist. This policy covers the app only;
+    it does not speak for any IPTV provider or playlist source you choose to
+    use with it.
+  </footer>
+</div>
+</body>
+</html>
