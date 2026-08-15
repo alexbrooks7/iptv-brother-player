@@ -128,8 +128,20 @@ fun MainScreen() {
     // showing an empty Live TV screen the user has to work out how to escape.
     // Guarded on a non-null list: null means the database has not answered yet,
     // and treating that as "no playlists" would hijack every cold start.
+    //
+    // Applied at most once per process, like resumeLastChannel above. Room
+    // re-emits this flow on any write to the sources table, and without the
+    // latch every such emission would yank a still-playlist-less viewer back
+    // here — including the moment they deliberately navigated to Settings from
+    // the add form to turn internet sharing off, which is the one escape route
+    // that screen has.
+    var addSourceRedirected by remember { mutableStateOf(false) }
     LaunchedEffect(sources) {
-        if (sources?.isEmpty() == true && screen is Screen.Main) screen = Screen.AddSource
+        if (addSourceRedirected) return@LaunchedEffect
+        if (sources?.isEmpty() == true && screen is Screen.Main) {
+            addSourceRedirected = true
+            screen = Screen.AddSource
+        }
     }
 
     val currentScreen = screen
@@ -209,6 +221,7 @@ fun MainScreen() {
                 onCancel = {
                     screen = if (sources.isNullOrEmpty()) Screen.AddSource else Screen.Main(Section.Sources)
                 },
+                onOpenSettings = { screen = Screen.Main(Section.Settings) },
             )
 
             is Screen.MovieDetail -> MovieDetailScreen(

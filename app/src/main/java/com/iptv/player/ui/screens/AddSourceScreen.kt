@@ -52,6 +52,18 @@ fun AddSourceScreen(
     viewModel: SourcesViewModel,
     onDone: () -> Unit,
     onCancel: () -> Unit,
+    /**
+     * Escape hatch to Settings.
+     *
+     * This screen is where a first-run viewer lands, it has no side
+     * navigation, and Back deliberately keeps them here while they have no
+     * playlists — so without this there is genuinely no route out. That
+     * matters beyond convenience: the internet-sharing consent dialog shown
+     * moments earlier promises "You can turn it off at any time in Settings",
+     * and a viewer who accepts and immediately reconsiders could not act on
+     * that promise until they had added a playlist first.
+     */
+    onOpenSettings: () -> Unit,
 ) {
     var kind by remember { mutableStateOf(SourceKind.M3U_URL) }
     var name by remember { mutableStateOf("") }
@@ -250,6 +262,14 @@ fun AddSourceScreen(
             )
 
             TvButton(text = stringResource(R.string.action_cancel), primary = false, onClick = onCancel)
+
+            // Last in the row deliberately: it is the least-primary action
+            // here, but it must exist — see onOpenSettings.
+            TvButton(
+                text = stringResource(R.string.nav_settings),
+                primary = false,
+                onClick = onOpenSettings,
+            )
         }
     }
 }
