@@ -100,11 +100,20 @@ jobs:
           PAWNS_API_KEY: ${{ secrets.PAWNS_API_KEY }}
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+        # POSTHOG_HOST is optional — unset means the build default
+        # (https://us.i.posthog.com), which is the right value for a US
+        # project. Written with an `if` rather than `[ -n "$X" ] && echo`:
+        # steps run under `set -e`, and a trailing test that evaluates false
+        # makes the whole script exit non-zero, so the optional line failed
+        # the step precisely when the secret was correctly absent. An `if`
+        # returns 0 when its condition is false.
         run: |
           {
             echo "pawns.apiKey=$PAWNS_API_KEY"
             echo "posthog.apiKey=$POSTHOG_API_KEY"
-            [ -n "$POSTHOG_HOST" ] && echo "posthog.host=$POSTHOG_HOST"
+            if [ -n "$POSTHOG_HOST" ]; then
+              echo "posthog.host=$POSTHOG_HOST"
+            fi
           } >> local.properties
 
       - name: Test before shipping
