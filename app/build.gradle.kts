@@ -31,7 +31,7 @@ val pawnsApiKey: String = localProps.getProperty("pawns.apiKey", "")
 val postHogApiKey: String = localProps.getProperty("posthog.apiKey", "")
 val postHogHost: String = localProps.getProperty("posthog.host", "https://us.i.posthog.com")
 
-val appVersionName = "1.0.1"
+val appVersionName = "1.0.2"
 
 plugins {
     alias(libs.plugins.android.application)
@@ -62,7 +62,7 @@ android {
         // to install an APK whose versionCode is lower than the installed
         // one, so forgetting to bump this is what turns an update into "you
         // have to uninstall first".
-        versionCode = 2
+        versionCode = 3
         versionName = appVersionName
 
         // Some IPTV providers reject or throttle the stock OkHttp/ExoPlayer
