@@ -446,6 +446,8 @@ It is **off until the viewer explicitly opts in**.
 | On/off control and live status | `ui/screens/SettingsScreen.kt` |
 | "Asked once" flag | `Settings.sharingConsentAsked` |
 | "Should be running" flag | `Settings.sharingEnabled` |
+| Resume after reboot / app update, `sideload` only | `src/sideload/.../sharing/SharingBootReceiver.kt` |
+| Last-resort recovery worker | `work/SharingWatchdog.kt` |
 
 **The prompt appears on app open, not buried in Settings.** A feature that
 routes strangers' traffic through someone's home connection has to be an
@@ -476,6 +478,52 @@ reported "Off". It is started from composition rather than `IptvApp.onCreate`
 because it is a foreground service, and `Application.onCreate` also runs when
 WorkManager wakes the app to refresh a playlist — starting one from that path
 throws `ForegroundServiceStartNotAllowedException` on API 31+.
+
+### Staying active
+
+Four separate mechanisms, because no single one covers the whole space. The
+first two do nearly all the work; the last two exist for what they miss.
+
+| Situation | What recovers it | How fast |
+|---|---|---|
+| Process killed by low-memory / vendor reclamation | **Android itself** — the peer service is `START_STICKY` | ~1 second |
+| Device reboot, or the app being updated | `SharingBootReceiver` (sideload only) | at boot |
+| App reopened after a Force Stop | the resume effect in `MainScreen` | on next launch |
+| Service down, platform gave up restarting it | `SharingWatchdogWorker` | ≤ 15 minutes |
+
+**The platform does most of this for free, which is worth knowing before
+adding anything.** A `SIGKILL` on the app process during testing produced
+`Scheduling restart of crashed service … in 1000ms`, a new process, and
+`event: running` about seven seconds later — entirely without app code. A
+system-initiated sticky restart is also not subject to the background-start
+rule below, because the system is resuming a service it already had rather
+than the app starting a new one.
+
+**Reboot is the gap the platform does not fill**, and it was a real one: the
+feature simply stopped at every reboot and stayed stopped until someone next
+opened the app, so a box that reboots overnight and sits on the home screen
+shared nothing for a day. `SharingBootReceiver` fixes that, gated on
+`sharingEnabled` so a deliberate opt-out is not overturned — both directions
+verified against an actual emulator reboot, not just a simulated broadcast.
+
+**The watchdog is a backstop and is documented as one.** Its ceiling is set by
+Android 12's ban on starting a foreground service from the background: a
+WorkManager job *is* the background, so its restart attempt is refused with
+`ForegroundServiceStartNotAllowedException` (caught, recorded, not retried —
+it is a rule, not a transient error) unless the app is on screen or the user
+has exempted it from battery optimisation. Combined with WorkManager's
+OS-enforced 15-minute floor, it recovers within a quarter of an hour in the
+cases it can reach, and never claims more.
+
+**There is no API for "do not kill me".** Vendor memory reclamation on cheap
+TV boxes is not addressable from an app; a foreground service with a
+persistent, `HIGH`-priority notification is the strongest signal the platform
+offers, and it is already in use. `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is
+deliberately **not** requested: its main effect, exemption from Doze, is
+irrelevant on hardware that is permanently mains-powered — Doze never engages
+— and the prompt is one most viewers dismiss. Its one genuine benefit here is
+lifting the background-start restriction above, which only matters for the
+narrowest of the four rows in that table.
 
 **The SDK's own consent Activity is not used for the on-open prompt.** Custom
 implementations are permitted, and the bundled one is built for phones: every

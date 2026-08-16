@@ -13,6 +13,7 @@ import com.iptv.player.data.repo.StreamUrlResolver
 import com.iptv.player.player.PlaybackQueue
 import com.iptv.player.util.Diagnostics
 import com.iptv.player.work.RefreshScheduler
+import com.iptv.player.work.SharingWatchdogScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -61,6 +62,10 @@ object ServiceLocator {
     }
 
     val refreshScheduler: RefreshScheduler by lazy { RefreshScheduler(appContext) }
+
+    val sharingWatchdogScheduler: SharingWatchdogScheduler by lazy {
+        SharingWatchdogScheduler(appContext)
+    }
 
     /** Where Room put the database, for the maintenance pass. */
     fun databaseFile(): java.io.File = appContext.getDatabasePath(AppDatabase.NAME)

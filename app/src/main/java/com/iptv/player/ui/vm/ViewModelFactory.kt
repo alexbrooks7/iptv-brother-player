@@ -78,6 +78,7 @@ val AppViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
             epg = ServiceLocator.epgRepository,
             db = ServiceLocator.database,
             scheduler = ServiceLocator.refreshScheduler,
+            watchdog = ServiceLocator.sharingWatchdogScheduler,
         )
     }
 }

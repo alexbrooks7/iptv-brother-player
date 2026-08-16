@@ -147,6 +147,13 @@ fun MainScreen() {
         val enabled = sharingEnabled ?: return@LaunchedEffect
         sharingResumed = true
         if (enabled && PawnsManager.hasConsent()) PawnsManager.startSharing(context)
+        // Reconcile the recovery watchdog against the stored preference on
+        // every start, not only when the setting is changed. A periodic job
+        // can be dropped — by a Force Stop, by "clear data", by a vendor task
+        // manager — and this is the cheapest place to notice: enqueueing is
+        // idempotent under KEEP, so a schedule that already exists is left
+        // alone rather than pushed further out.
+        settingsViewModel.syncSharingWatchdog(enabled)
     }
 
     // "Open the last channel on start-up", applied once per process.

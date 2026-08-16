@@ -13,6 +13,7 @@ import com.iptv.player.data.prefs.pinMatches
 import com.iptv.player.data.repo.CatalogRepository
 import com.iptv.player.data.repo.EpgRepository
 import com.iptv.player.work.RefreshScheduler
+import com.iptv.player.work.SharingWatchdogScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,6 +32,7 @@ class SettingsViewModel(
     private val epg: EpgRepository,
     private val db: AppDatabase,
     private val scheduler: RefreshScheduler,
+    private val watchdog: SharingWatchdogScheduler,
 ) : ViewModel() {
 
     private val _message = MutableStateFlow<String?>(null)
@@ -52,8 +54,25 @@ class SettingsViewModel(
     /** Records that the sharing disclosure was answered, either way. */
     fun markSharingConsentAsked() = viewModelScope.launch { store.setSharingConsentAsked() }
 
-    /** Remembers the on/off choice so start-up can restore it. */
-    fun setSharingEnabled(value: Boolean) = viewModelScope.launch { store.setSharingEnabled(value) }
+    /**
+     * Remembers the on/off choice so start-up can restore it, and brings the
+     * recovery watchdog in line with it.
+     *
+     * The single point all three ways of changing this funnel through — the
+     * consent dialog's two buttons and the Settings row — which is why the
+     * watchdog is scheduled here rather than at each of those call sites.
+     */
+    fun setSharingEnabled(value: Boolean) = viewModelScope.launch {
+        store.setSharingEnabled(value)
+        watchdog.sync(value)
+    }
+
+    /**
+     * Re-applies the watchdog schedule without touching the stored setting —
+     * called once per start-up to recover a job that was dropped while the app
+     * was not running.
+     */
+    fun syncSharingWatchdog(enabled: Boolean) = watchdog.sync(enabled)
     fun setReconnectAttempts(value: Int) = viewModelScope.launch { store.setReconnectAttempts(value) }
     fun setResumeLastChannel(value: Boolean) = viewModelScope.launch { store.setResumeLastChannel(value) }
     fun setAspectMode(value: AspectMode) = viewModelScope.launch { store.setAspectMode(value) }
